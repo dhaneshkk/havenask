@@ -12,8 +12,8 @@ build --action_env=BAZEL_CXXOPTS="-fcoroutines"
 build --action_env=TURING_ENGINE_DEV_VERSION
 build --host_action_env=TURING_ENGINE_DEV_VERSION
 build --cxxopt="-std=c++17" --copt="-DGTEST_USE_OWN_TR1_TUPLE=0" --copt="-DEIGEN_MAX_CPP_VER=11"
-build --cxxopt="-Wno-stringop-overflow"
-build --cxxopt="-Wno-stringop-truncation"
+# -Wno-stringop-overflow / -Wno-stringop-truncation were removed: those GCC
+# warnings flag exactly the unbounded strcpy/sprintf bugs fixed in this tree.
 build --cxxopt="-Wno-register"
 build --copt="-mno-avx512f"
 build --copt="-mrdrnd"
@@ -35,7 +35,9 @@ test --test_env="WD_WORKDIR=./aios/wunder"
 test --test_env CHECK_CASE_TIMEOUT=false
 test --test_env="TZ=UTC-8"
 test --test_env="LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:$LD_LIBRARY_PATH:$HADOOP_HOME/lib/native/:./aios/fslib:/opt/taobao/java/jre/lib/amd64/server/";
-test --test_env="PRIVATE_TOKEN" --test_env="ORIGIN_TOKEN" --test_env="AONE_TOKEN"
+# Credential env vars (PRIVATE_TOKEN/ORIGIN_TOKEN/AONE_TOKEN) are no longer
+# forwarded into every test sandbox. Tests that need them can opt in from a
+# local user.bazelrc, e.g.  test --test_env=PRIVATE_TOKEN
 test --test_env=SLEEP_CPU_FOR_TEST=1
 test --test_env=WAIT_COMPILE_FOR_TEST=1
 build --action_env CC_OPT_FLAGS="-O2"
@@ -48,7 +50,6 @@ build --action_env TF_NEED_PAI_TRT="0"
 build --action_env GCC_HOST_COMPILER_PATH="/usr/bin/gcc"
 build --action_env PYTHON_BIN_PATH="/usr/bin/python3"
 build --workspace_status_command "sh ./package/git_commit/git_info.sh"
-build --cxxopt="-std=c++17" --cxxopt="-Wno-register"
 build --config=old_abi
 build:old_abi --copt="-D_GLIBCXX_USE_CXX11_ABI=0" --define use_abi=0
 build:clang --action_env=CC=/usr/bin/clang
@@ -102,3 +103,4 @@ build:havenask --define disable_catalog_mongodb=true
 test --test_tag_filters=-slow_case,-codegen_case,-one_box --test_env CHECK_CASE_TIMEOUT=false
 build:havenask --distdir=/external/__distdir__
 build --config=havenask
+try-import %workspace%/user.bazelrc
