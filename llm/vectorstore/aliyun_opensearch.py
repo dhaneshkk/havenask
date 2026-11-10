@@ -37,7 +37,6 @@ class AliyunOpenSearch(BaseStore):
         engine_client = client.Client(self.config)
         option_headers = {}
 
-        result = []
         try:
             embedding_str = ','.join('{:.6f}'.format(fp) for fp in embedding)
             sql = f'''select pk, content, source_id, proxima_score('embedding_index') as score from {self.TABLE_NAME}
@@ -51,9 +50,10 @@ class AliyunOpenSearch(BaseStore):
             if error_info['ErrorCode'] != 0:
                 raise RuntimeError(f"query opensearch failed, {error_info['Message']}")
             data = obj['sql_result']['data']
-            result = [HAResult(pk=column[0], content=column[1], source_id=column[2]) for column in data]
-            return result
+            return [HAResult(pk=column[0], content=column[1], source_id=column[2]) for column in data]
         except Exception as e:
+            # Previously a `finally: return result` here swallowed every error
+            # (including this RuntimeError) and returned [], so outages looked
+            # like "no matching documents". Log and propagate instead.
             logging.exception(f"search opensearch failed: {e}")
-        finally:
-            return result
+            raise
