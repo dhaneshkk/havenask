@@ -1003,7 +1003,7 @@ string HdfsFileSystem::getHadoopClassPathPattern(const string &hadoopHome) {
         return "";
     }
 
-    string hadoopCmd = "LD_PRELOAD= " + hadoopBin + " classpath";
+    string hadoopCmd = "LD_PRELOAD= " + autil::StringUtil::shellQuote(hadoopBin) + " classpath";
     FILE *stream = popen(hadoopCmd.c_str(), "r");
     if (stream == NULL) {
         AUTIL_LOG(ERROR,

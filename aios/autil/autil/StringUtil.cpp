@@ -27,6 +27,7 @@
 #include <time.h>
 
 #include "autil/Lock.h"
+#include "autil/ShellQuote.h"
 #include "autil/ShortString.h"
 #include "autil/TimeUtility.h"
 
@@ -611,6 +612,8 @@ void StringUtil::replaceAll(string &str, const string &oldStr, const string &new
 void StringUtil::replace(string &str, char oldValue, char newValue) {
     ::replace(str.begin(), str.end(), oldValue, newValue);
 }
+
+string StringUtil::shellQuote(const std::string &str) { return autil::shellQuote(str); }
 
 string StringUtil::strToHexStr(const std::string &str) {
     string hexStr;

@@ -22,6 +22,8 @@
 #include <string.h>
 #include <string>
 
+#include "autil/ShellQuote.h"
+
 namespace autil {
 class Backtrace {
 public:
@@ -90,22 +92,33 @@ public:
         char buffer[MAX_BUFFER_LEN];
         char syscom[MAX_BUFFER_LEN];
         Dl_info info;
-        link_map *linkMap;
-        dladdr1((void *)addr, &info, (void **)&linkMap, RTLD_DL_LINKMAP);
+        link_map *linkMap = nullptr;
+        if (dladdr1((void *)addr, &info, (void **)&linkMap, RTLD_DL_LINKMAP) == 0 || linkMap == nullptr) {
+            return std::string();
+        }
         size_t vma = (size_t)addr - (size_t)(linkMap->l_addr) -
                      1; // pc一般指向即将执行的代码，因此为了准确定位出错位置，这里需要减1；
-        sprintf(syscom, "sh -c 'addr2line -e %s -Ci %zx' 2>/dev/null", path, vma);
+        // Quote the binary path for the shell (a path containing a quote
+        // previously broke out of the command).
+        std::string quotedPath = autil::shellQuote(path);
+        int len = snprintf(syscom, sizeof(syscom), "addr2line -e %s -Ci %zx 2>/dev/null", quotedPath.c_str(), vma);
+        if (len < 0 || (size_t)len >= sizeof(syscom)) {
+            return std::string();
+        }
         auto p = popen(syscom, "r");
+        if (p == nullptr) {
+            return std::string();
+        }
         std::string result;
-        while (!feof(p)) {
-            if (fgets(buffer, sizeof(buffer), p) != nullptr)
-                result += buffer;
+        while (fgets(buffer, sizeof(buffer), p) != nullptr) {
+            result += buffer;
         }
         pclose(p);
-        if (!result.empty()) {
+        // Original behaviour trimmed two trailing characters; keep that, but
+        // never call pop_back() on an empty string (undefined behaviour).
+        for (int i = 0; i < 2 && !result.empty(); ++i) {
             result.pop_back();
         }
-        result.pop_back();
         return result;
     }
 

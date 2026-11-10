@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <stdlib.h>
 #include <unistd.h>
 #include <utility>
@@ -276,21 +277,29 @@ void ScriptExecutor::addEnv(KeyValueMap& map, const string& key, const string& p
 string ScriptExecutor::makeCmdString(const string& scriptRoot, const KeyValueMap& envParam,
                                      const ScriptTaskConfig& conf)
 {
+    // Every value below comes from task config or paths, so each is quoted as a
+    // single shell word; previously a config value containing ; | $ ` etc. was
+    // executed by system().
     vector<string> tmp = {"/bin/env"};
     for (const auto& item : envParam) {
-        tmp.push_back(string(item.first) + "=" + string(item.second));
+        tmp.push_back(StringUtil::shellQuote(string(item.first) + "=" + string(item.second)));
     }
-    tmp.push_back(_runScriptFile);
+    tmp.push_back(StringUtil::shellQuote(_runScriptFile));
     tmp.push_back(StringUtil::toString(getpid()));
-    tmp.push_back(conf.scriptType);
+    tmp.push_back(StringUtil::shellQuote(conf.scriptType));
 
     string scriptPath = fslib::util::FileUtil::joinFilePath(scriptRoot, conf.scriptFile);
-    tmp.push_back(scriptPath);
-    tmp.push_back(conf.arguments);
+    tmp.push_back(StringUtil::shellQuote(scriptPath));
+    // "arguments" is a whitespace-separated list (e.g. "3 6"); keep that
+    // splitting but quote each token so it cannot inject shell syntax.
+    std::istringstream argStream(conf.arguments);
+    for (string arg; argStream >> arg;) {
+        tmp.push_back(StringUtil::shellQuote(arg));
+    }
     if (!_logPath.empty()) {
         string logFile = fslib::util::FileUtil::joinFilePath(_logPath, string("run_script.log.") +
                                                                            StringUtil::toString(_retryTimes));
-        string addLogCmd = string(" >> ") + logFile;
+        string addLogCmd = string(">> ") + StringUtil::shellQuote(logFile);
         tmp.push_back(addLogCmd);
     }
     return StringUtil::toString(tmp, " ");

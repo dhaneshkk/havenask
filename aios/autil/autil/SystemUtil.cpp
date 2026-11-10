@@ -41,7 +41,7 @@ bool SystemUtil::tar(const std::string &archiveFile, const std::string &sourceDi
     if (!fslib::util::FileUtil::isExist(sourceDir)) {
         return false;
     }
-    std::string cmd = "tar -zcf " + archiveFile + " " + sourceDir;
+    std::string cmd = "tar -zcf " + StringUtil::shellQuote(archiveFile) + " " + StringUtil::shellQuote(sourceDir);
     AUTIL_LOG(INFO, "exec cmd: %s", cmd.c_str());
     int ret = system(cmd.c_str());
     return (0 == ret);
@@ -58,7 +58,7 @@ bool SystemUtil::unTar(const std::string &archiveFile, const std::string &target
         return false;
     }
 
-    std::string cmd = "tar -C " + targetDir + " -xf " + archiveFile;
+    std::string cmd = "tar -C " + StringUtil::shellQuote(targetDir) + " -xf " + StringUtil::shellQuote(archiveFile);
     AUTIL_LOG(INFO, "exec cmd: %s", cmd.c_str());
     int ret = system(cmd.c_str());
     return (0 == ret);
@@ -99,7 +99,7 @@ bool SystemUtil::aInst2(const std::string &rpmFile, const std::string &targetDir
         if (!fslib::util::FileUtil::writeFile(confFile, fileContent)) {
             return false;
         }
-        confArg = "-c " + confFile;
+        confArg = "-c " + StringUtil::shellQuote(confFile);
     }
 
     std::string pkgName = fslib::util::FileUtil::baseName(rpmFile);
@@ -112,14 +112,15 @@ bool SystemUtil::aInst2(const std::string &rpmFile, const std::string &targetDir
         // just do nothing
     } else if ('/' == rpmFile[0]) {
         // local repo
-        repoInfo = "--localrepo=" + fslib::util::FileUtil::parentPath(rpmFile);
+        repoInfo = "--localrepo=" + StringUtil::shellQuote(fslib::util::FileUtil::parentPath(rpmFile));
     } else {
         // unknown type
         return false;
     }
 
-    std::string cmd = "ainst2 install " + pkgName + " " + repoInfo + " -v --yes --nostart -i " + targetDir + " " +
-                      confArg + " >" + outFile + " 2>" + errFile;
+    std::string cmd = "ainst2 install " + StringUtil::shellQuote(pkgName) + " " + repoInfo + " -v --yes --nostart -i " +
+                      StringUtil::shellQuote(targetDir) + " " + confArg + " >" + StringUtil::shellQuote(outFile) + " 2>" +
+                      StringUtil::shellQuote(errFile);
     AUTIL_LOG(INFO, "exec cmd: %s", cmd.c_str());
     int ret = system(cmd.c_str());
     AUTIL_LOG(INFO, "return %d", ret);
