@@ -17,6 +17,7 @@
 
 #include <assert.h>
 #include <mxml.h>
+#include <string>
 
 #include "aios/apps/facility/cm2/cm_basic/basic_struct/cm_central.h"
 #include "aios/apps/facility/cm2/cm_basic/config/config_option.h"
@@ -121,7 +122,6 @@ char* CMClusterXMLBuild::buildXmlCMCluster(cm_basic::CMCluster* pCMCluster, bool
     }
     int iGroupNum = pCMCluster->group_vec_size();
     for (int iIdx = 0; iIdx < iGroupNum; ++iIdx) {
-        char szBuf[256];
         mxml_node_t* pGroupChild = mxmlNewElement(pRoot, XML_NODE_GROUP);
         mxmlElementSetAttrf(pGroupChild, XML_NODE_GROUP_ID, "%d", iIdx);
         const cm_basic::CMGroup& rGroup = pCMCluster->group_vec(iIdx);
@@ -130,14 +130,18 @@ char* CMClusterXMLBuild::buildXmlCMCluster(cm_basic::CMCluster* pCMCluster, bool
             mxml_node_t* pNodeChild = mxmlNewElement(pGroupChild, XML_NODE_NODE);
             const cm_basic::CMNode& rNode = rGroup.node_vec(jIdx);
             mxmlElementSetAttr(pNodeChild, XML_NODE_NODE_IP, rNode.node_ip().c_str());
-            int n_ret = 0;
+            // Built as a std::string: a fixed 256-byte buffer overflowed once a
+            // node had more than ~12 protocol/port pairs.
+            std::string protoPorts;
             for (int iProtocIdx = 0; iProtocIdx < rNode.proto_port_size(); ++iProtocIdx) {
                 const cm_basic::ProtocolPort& rProtocolPort = rNode.proto_port(iProtocIdx);
-                n_ret += sprintf(szBuf + n_ret, "|%s:%d", cm_basic::enum_protocol_type[rProtocolPort.protocol()],
-                                 rProtocolPort.port());
+                protoPorts += "|";
+                protoPorts += cm_basic::enum_protocol_type[rProtocolPort.protocol()];
+                protoPorts += ":";
+                protoPorts += std::to_string(rProtocolPort.port());
             }
             if (rNode.proto_port_size() > 0) {
-                mxmlElementSetAttr(pNodeChild, XML_NODE_NODE_PROTOPORT, szBuf + 1);
+                mxmlElementSetAttr(pNodeChild, XML_NODE_NODE_PROTOPORT, protoPorts.c_str() + 1);
             }
             if (rNode.has_lb_info()) {
                 if (rNode.lb_info().has_weight()) {

@@ -42,7 +42,7 @@ class EventTags;
                 beeper::EventTags traceTags;                                                                           \
                 traceTags.AddTag("pk", traceId);                                                                       \
                 char msg[1024];                                                                                        \
-                sprintf(msg, format, args);                                                                            \
+                snprintf(msg, sizeof(msg), format, args);                                                              \
                 BEEPER_REPORT(IE_DOC_TRACER_COLLECTOR_NAME, msg, traceTags);                                           \
             }                                                                                                          \
         }                                                                                                              \

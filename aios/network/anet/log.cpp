@@ -15,6 +15,7 @@
  */
 #include "aios/network/anet/log.h"
 
+#include <limits.h>
 #include <string>
 
 class ILogger;
@@ -99,21 +100,25 @@ void Logger::logMessage(int level, const char *file, int line, const char *funct
 
 void Logger::rotateLog(const char *filename) {
     if (access(filename, R_OK) == 0) {
-        char oldLogFile[256];
+        char oldLogFile[PATH_MAX + 32];
         time_t t;
         time(&t);
         struct tm tm;
         ::localtime_r((const time_t *)&t, &tm);
-        sprintf(oldLogFile,
-                "%s.%04d%02d%02d%02d%02d%02d",
-                filename,
-                tm.tm_year + 1900,
-                tm.tm_mon + 1,
-                tm.tm_mday,
-                tm.tm_hour,
-                tm.tm_min,
-                tm.tm_sec);
-        rename(filename, oldLogFile);
+        int len = snprintf(oldLogFile,
+                           sizeof(oldLogFile),
+                           "%s.%04d%02d%02d%02d%02d%02d",
+                           filename,
+                           tm.tm_year + 1900,
+                           tm.tm_mon + 1,
+                           tm.tm_mday,
+                           tm.tm_hour,
+                           tm.tm_min,
+                           tm.tm_sec);
+        // Never rename onto a truncated name: it could clobber an unrelated file.
+        if (len > 0 && (size_t)len < sizeof(oldLogFile)) {
+            rename(filename, oldLogFile);
+        }
     }
     int fd = open(filename, O_RDWR | O_CREAT | O_APPEND, 0640);
     dup2(fd, 1);

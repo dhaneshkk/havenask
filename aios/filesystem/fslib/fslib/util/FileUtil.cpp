@@ -964,9 +964,12 @@ bool FileUtil::listSubFiles(const string &dir, std::map<std::string, std::string
 }
 
 string FileUtil::dirName(const string &path) {
-    char tmpPath[PATH_MAX];
-    strcpy(tmpPath, path.c_str());
-    return string(dirname(tmpPath));
+    // dirname() may modify its argument, so work on a heap copy sized to the
+    // input instead of a fixed PATH_MAX stack buffer (paths from URIs/configs
+    // are not bounded by PATH_MAX).
+    std::vector<char> tmpPath(path.begin(), path.end());
+    tmpPath.push_back('\0');
+    return string(dirname(tmpPath.data()));
 }
 
 bool FileUtil::createLink(const string &target, const string &linkName, bool isSymlink) {

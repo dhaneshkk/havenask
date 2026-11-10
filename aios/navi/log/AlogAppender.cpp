@@ -572,7 +572,13 @@ void* FileAppender :: compressHook(void *p)
     void *tmp = NULL;
     char gzFileName[512];
     ssize_t leftSize = 0;
-    sprintf(gzFileName, "%s.gz",fileName);
+    int gzNameLen = snprintf(gzFileName, sizeof(gzFileName), "%s.gz", fileName);
+    if (gzNameLen < 0 || (size_t)gzNameLen >= sizeof(gzFileName)) {
+        fprintf(stderr, "Compress log file %s error: file name too long!\n", fileName);
+        delete [] fileName;
+        delete (param*)p;
+        return NULL;
+    }
     int flags = O_LARGEFILE;
     flags = flags | O_RDONLY;
     if(cacheLimit > 0)

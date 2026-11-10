@@ -52,19 +52,34 @@ public:
     bool isForShortVersion() const { return _verShort; }
     bool isForLongVersion() const { return _verLong; }
     bool asDaemon() const { return _daemon; }
-    cmd_type_t getCommandType() const { return _cmd; }
+    cmd_type_t getCommandType() const { return _badArg ? cmd_unknown : _cmd; }
 
 private:
+    // Copies a path argument without overflowing; rejects (rather than
+    // silently truncates) paths that do not fit.
+    static bool copyPathArg(char* dst, size_t dstSize, const char* src, const char* opt)
+    {
+        size_t len = strlen(src);
+        if (len >= dstSize) {
+            fprintf(stderr, "argument for %s is too long (%zu bytes, max %zu)\n", opt, len, dstSize - 1);
+            dst[0] = '\0';
+            return false;
+        }
+        memcpy(dst, src, len + 1);
+        return true;
+    }
+
     char _logPath[PATH_MAX + 1];
     char _confPath[PATH_MAX + 1];
     bool _verShort;
     bool _verLong;
     bool _help;
     bool _daemon;
+    bool _badArg;
     cmd_type_t _cmd;
 };
 
-Args::Args(int argc, char* argv[]) : _verShort(false), _verLong(false), _help(false), _daemon(false), _cmd(cmd_start)
+Args::Args(int argc, char* argv[]) : _verShort(false), _verLong(false), _help(false), _daemon(false), _badArg(false), _cmd(cmd_start)
 {
     int c = 0;
     _logPath[0] = '\0';
@@ -75,10 +90,14 @@ Args::Args(int argc, char* argv[]) : _verShort(false), _verLong(false), _help(fa
     while ((c = getopt(argc, argv, "k:c:dl:vVh")) != -1) {
         switch (c) {
         case 'c':
-            strcpy(_confPath, optarg);
+            if (!copyPathArg(_confPath, sizeof(_confPath), optarg, "-c")) {
+                _badArg = true;
+            }
             break;
         case 'l':
-            strcpy(_logPath, optarg);
+            if (!copyPathArg(_logPath, sizeof(_logPath), optarg, "-l")) {
+                _badArg = true;
+            }
             break;
         case 'k':
             if (strcmp(optarg, "restart") == 0) {
@@ -214,12 +233,21 @@ int CommandLine::run(int argc, char* argv[])
     if (setSigmask() == false)
         return -1;
 
+    if (pconf == NULL) {
+        fprintf(stderr, "cannot resolve config path '%s'\n", args.getConfPath());
+        help(-1);
+        return -1;
+    }
     for (char* pTmp = pconf; *pTmp; pTmp++) {
         if (*pTmp == '/') {
             *pTmp = '_';
         }
     }
-    snprintf(pidFile, strlen(_name) + strlen(pidFileTMPL) + strlen(pconf) + 1, pidFileTMPL, _name, pconf);
+    int pidLen = snprintf(pidFile, sizeof(pidFile), pidFileTMPL, _name, pconf);
+    if (pidLen < 0 || (size_t)pidLen >= sizeof(pidFile)) {
+        fprintf(stderr, "pid file path too long for '%s'\n", pconf);
+        return -1;
+    }
     curPid = getPidFromFile(pidFile);
     if (args.getCommandType() == cmd_unknown || strlen(args.getConfPath()) == 0) {
         help(-1);
