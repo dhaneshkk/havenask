@@ -137,9 +137,8 @@ bool HdfsFileSystem::parsePath(const string &fullPath, string &filePath, HdfsFsC
     config._bufferSize = 0;
     config._blockSize = 0;
     config._replica = 0;
-    config._user = NULL;
-    config._groups = NULL;
-    config._groupNum = 0;
+    config.clearUser();
+    config.clearGroups();
 
     return parseConfig(configStr, config);
 }
@@ -199,8 +198,9 @@ bool HdfsFileSystem::parseConfig(const string &configStr, HdfsFsConfig &config) 
         }
         case 'u': {
             if (strcmp(subConfVec[0].c_str(), HdfsFileSystem::HDFS_USER.c_str()) == 0) {
+                config.clearUser(); // a repeated key previously leaked the old value
                 config._user = new char[subConfVec[1].size() + 1];
-                strcpy(config._user, subConfVec[1].c_str());
+                memcpy(config._user, subConfVec[1].c_str(), subConfVec[1].size() + 1);
                 continue;
             }
             break;
@@ -208,11 +208,12 @@ bool HdfsFileSystem::parseConfig(const string &configStr, HdfsFsConfig &config) 
         case 'g': {
             if (strcmp(subConfVec[0].c_str(), HdfsFileSystem::HDFS_GROUPS.c_str()) == 0) {
                 vector<string> groupVec = StringUtil::split(subConfVec[1], HdfsFileSystem::HDFS_GROUP_SEPARATOR);
+                config.clearGroups(); // a repeated key previously leaked the old value
                 config._groups = new const char *[groupVec.size()];
                 config._groupNum = groupVec.size();
                 for (size_t i = 0; i < groupVec.size(); i++) {
                     char *group = new char[groupVec[i].size() + 1];
-                    strcpy(group, groupVec[i].c_str());
+                    memcpy(group, groupVec[i].c_str(), groupVec[i].size() + 1);
                     config._groups[i] = group;
                 }
                 continue;
@@ -239,7 +240,7 @@ bool HdfsFileSystem::parseConfig(const string &configStr, HdfsFsConfig &config) 
 #if defined HADOOP_CDH
     return true;
 #else
-    if ((config._user && config_groups && config._groupNum > 0) ||
+    if ((config._user && config._groups && config._groupNum > 0) ||
         (config._user == NULL && config._groups == NULL && config._groupNum == 0)) {
         return true;
     }
