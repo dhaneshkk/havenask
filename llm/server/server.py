@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import inspect
-from fastapi import FastAPI, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from models.models import (
     Query,
@@ -18,12 +18,18 @@ from vectorstore.factory import get_vector_store
 from typing import List
 from spliter.sentence_spliter import SentenceSpliter
 from extractor.file_extractor import extract_file
+from util.security import check_startup_config, max_upload_bytes, require_api_key, sanitize_filename
 
-app = FastAPI()
+# Every route requires the API key when LLM_API_KEY is set (see util/security.py).
+app = FastAPI(dependencies=[Depends(require_api_key)])
 
 @app.post("/files")
 async def upload_file(file: UploadFile):
-    file_text = await extract_file(file)
+    file_name = sanitize_filename(file.filename)
+    try:
+        file_text = await extract_file(file, file_name, max_upload_bytes())
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     spliter = SentenceSpliter()
     chunks = await spliter.split_token_with_overlap(file_text)
     if len(chunks) == 0:
@@ -35,7 +41,7 @@ async def upload_file(file: UploadFile):
         embeddings.append(embedding)
     ha_documents = []
     for i, chunk in enumerate(chunks):
-        ha_document = HADocument(id=i, source_id=file.filename, content=chunk, embedding=embeddings[i])
+        ha_document = HADocument(id=i, source_id=file_name, content=chunk, embedding=embeddings[i])
         ha_documents.append(ha_document)
     await store.insert(ha_documents)
     return InsertResponse(success=True)
@@ -82,5 +88,6 @@ async def stream_chat(query: Query):
 @app.on_event("startup")
 async def startup():
     global llm, store
+    check_startup_config()
     llm = get_llm_adapter()
     store = get_vector_store()

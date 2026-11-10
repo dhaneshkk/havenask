@@ -86,6 +86,10 @@ public:
     static void trim(std::string_view &str);
     static bool startsWith(const std::string &str, const std::string &prefix);
     static bool endsWith(const std::string &str, const std::string &suffix);
+    // Quote a string as a single POSIX shell word: wraps it in single quotes and
+    // escapes embedded single quotes. Use for every value interpolated into a
+    // command passed to system()/popen().
+    static std::string shellQuote(const std::string &str);
     static std::vector<std::string> split(const std::string &text, const std::string &sepStr, bool ignoreEmpty = true);
     static std::vector<std::string> split(const std::string &text, const char &sepChar, bool ignoreEmpty = true);
     static void

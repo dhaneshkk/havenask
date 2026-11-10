@@ -1,0 +1,78 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      bazel_asan:
+        description: "Also run the full Bazel ASan build in the ha3_dev image (slow, needs a large runner)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Fast, dependency-free checks that run on every push / PR.
+  shell-quote:
+    name: shellQuote under ASan/UBSan (gcc + clang)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cxx: [g++, clang++]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run ShellQuoteTest
+        run: |
+          ${{ matrix.cxx }} -std=c++17 -Wall -Wextra -Werror \
+            -fsanitize=address,undefined -fno-sanitize-recover=all \
+            -Iaios/autil aios/autil/autil/test/ShellQuoteTest.cpp -o shell_quote_test
+          ./shell_quote_test
+          test ! -e /tmp/never_run  # no test input may have been executed
+
+  llm:
+    name: llm/ server tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: llm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install test dependencies
+        # Only what the server/models import; the heavy model stack (torch,
+        # transformers) is stubbed in tests/conftest.py.
+        run: pip install -r tests/requirements-test.txt
+      - name: Run tests
+        run: python -m pytest -q tests
+
+  # Full Bazel build of the hardened libraries with AddressSanitizer, inside
+  # the official dev image. Manual only: it needs ~10 GB RAM / 50 GB disk.
+  bazel-asan:
+    name: Bazel ASan build (ha3_dev)
+    if: github.event_name == 'workflow_dispatch' && inputs.bazel_asan
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    container:
+      image: registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build touched targets with ASan and run shell_quote_test
+        run: |
+          bazel test --config=asan -c dbg --strip=never \
+            //aios/autil:shell_quote_test
+          bazel build --config=asan -c dbg --strip=never --keep_going \
+            //aios/autil:all \
+            //aios/filesystem/fslib/fslib/util:all \
+            //aios/filesystem/fslib/fslib/fs/hdfs:all \
+            //aios/network/anet:all \
+            //aios/navi:all \
+            //aios/hippo:all \
+            //aios/apps/facility/cm2/cm_basic/util:all \
+            //aios/apps/facility/cm2/cm_basic/config:all \
+            //aios/apps/facility/swift/tools/admin_starter:all \
+            //aios/apps/facility/build_service/build_service_tasks:all

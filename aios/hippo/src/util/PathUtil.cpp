@@ -388,7 +388,8 @@ bool PathUtil::superChmod(const std::string &dirPath, const std::string &pattern
     if (!isPathExist(dirPath)) {
         return false;
     }
-    string cmd = SUPER_CMD + " chmod -R " + pattern + " " + dirPath + " > /dev/null 2>&1";
+    string cmd = SUPER_CMD + " chmod -R " + autil::StringUtil::shellQuote(pattern) + " " +
+                 autil::StringUtil::shellQuote(dirPath) + " > /dev/null 2>&1";
     if (0 != system(cmd.c_str())) {
         HIPPO_LOG(ERROR, "chmod path [%s] to [%s] failed",
                   dirPath.c_str(), pattern.c_str());
@@ -408,7 +409,8 @@ bool PathUtil::chattr(const std::string &dirPath, string args) {
     if (!isPathExist(dirPath)) {
         return false;
     }
-    string cmd = SUPER_CMD + " chattr -R " + args + " " + dirPath + " > /dev/null 2>&1";
+    // args is a caller-supplied flag list (e.g. "+i"), not quoted by design.
+    string cmd = SUPER_CMD + " chattr -R " + args + " " + autil::StringUtil::shellQuote(dirPath) + " > /dev/null 2>&1";
     if (0 != system(cmd.c_str())) {
         HIPPO_LOG(ERROR, "chattr path [%s] attr [%s] failed",
                   dirPath.c_str(), args.c_str());

@@ -19,6 +19,7 @@
 #include <cstring>
 #include <errno.h>
 #include <memory>
+#include <new>
 #include <net/if.h>
 #include <net/if_arp.h>
 #include <netdb.h>
@@ -125,14 +126,20 @@ char** CDGramCommon::get_local_ipaddr(int& nSize)
         return NULL;
     conf.ifc_len = BUFSIZ;
     conf.ifc_buf = buff;
-    if (ioctl(sd, SIOCGIFCONF, &conf) < 0)
+    if (ioctl(sd, SIOCGIFCONF, &conf) < 0) {
+        close(sd);
         return NULL;
+    }
 
     nSize = conf.ifc_len / sizeof(struct ifreq);
     ifr = conf.ifc_req;
-    char** ppIpAddrs = new char*[nSize];
-    if (ppIpAddrs == NULL)
+    // nothrow so the NULL checks below are meaningful (plain new throws).
+    char** ppIpAddrs = new (std::nothrow) char*[nSize];
+    if (ppIpAddrs == NULL) {
+        nSize = 0;
+        close(sd);
         return NULL;
+    }
 
     for (int i = 0; i < nSize; i++, ifr++) {
         ppIpAddrs[i] = NULL;
@@ -141,13 +148,14 @@ char** CDGramCommon::get_local_ipaddr(int& nSize)
             continue;
         if (((ifr->ifr_flags & IFF_LOOPBACK) == 0) && (ifr->ifr_flags & IFF_UP)) {
             char* pIp = inet_ntoa(sin->sin_addr);
-            ppIpAddrs[i] = new char[strlen(pIp) + 1];
+            size_t ipLen = strlen(pIp);
+            ppIpAddrs[i] = new (std::nothrow) char[ipLen + 1];
             if (ppIpAddrs[i] != NULL) {
-                strcpy(ppIpAddrs[i], pIp);
-                (ppIpAddrs[i])[strlen(pIp)] = '\0';
+                memcpy(ppIpAddrs[i], pIp, ipLen + 1);
             }
         }
     }
+    close(sd); // previously leaked one fd per call
     return ppIpAddrs;
 }
 

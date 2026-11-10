@@ -92,11 +92,18 @@ async def stream_chat(request: ChatRequest):
     return StreamingResponse(streaming(request))
 
 if __name__ == '__main__':
-    tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
-    model = AutoModel.from_pretrained("THUDM/chatglm-6b",trust_remote_code=True)
+    import os
+    model_name = os.environ.get('CHATGLM_MODEL') or 'THUDM/chatglm-6b'
+    # trust_remote_code runs the model repo's Python: pin a reviewed commit.
+    revision = os.environ.get('CHATGLM_REVISION') or None
+    if revision is None:
+        print(f'WARNING: CHATGLM_REVISION not set, loading unpinned remote code for {model_name}')
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True, revision=revision)
+    model = AutoModel.from_pretrained(model_name, trust_remote_code=True, revision=revision)
     if torch.cuda.is_available():
         model.half().cuda()
     else:
         model.float()
     model.eval()
-    uvicorn.run(app, host='0.0.0.0', port=8001, workers=1)
+    # Loopback by default; this model server has no authentication of its own.
+    uvicorn.run(app, host=os.environ.get('SERVER_HOST') or '127.0.0.1', port=8001, workers=1)

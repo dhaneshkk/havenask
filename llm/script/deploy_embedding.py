@@ -57,4 +57,6 @@ if __name__ == '__main__':
     else:
         model.float()
     model.eval()
-    uvicorn.run(app, host='0.0.0.0', port=8008, workers=1)
+    import os
+    # Loopback by default; this embedding server has no authentication of its own.
+    uvicorn.run(app, host=os.environ.get('SERVER_HOST') or '127.0.0.1', port=8008, workers=1)

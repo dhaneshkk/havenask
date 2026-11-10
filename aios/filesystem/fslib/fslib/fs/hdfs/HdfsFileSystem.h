@@ -47,13 +47,26 @@ public:
         _groupNum = 0;
     }
     ~HdfsFsConfig() {
+        clearUser();
+        clearGroups();
+    }
+    // Owns raw buffers: copying would double-free.
+    HdfsFsConfig(const HdfsFsConfig &) = delete;
+    HdfsFsConfig &operator=(const HdfsFsConfig &) = delete;
+
+    void clearUser() {
         delete[] _user;
+        _user = NULL;
+    }
+    void clearGroups() {
         if (NULL != _groups) {
-            for (uint16_t i = 0; i < _groupNum; i++) {
+            for (int16_t i = 0; i < _groupNum; i++) {
                 delete[] _groups[i];
             }
             delete[] _groups;
         }
+        _groups = NULL;
+        _groupNum = 0;
     }
 };
 

@@ -46,7 +46,7 @@ def parse_text(text):
         else:
             if i > 0:
                 if count % 2 == 1:
-                    line = line.replace("`", "\`")
+                    line = line.replace("`", "\\`")
                     line = line.replace("<", "&lt;")
                     line = line.replace(">", "&gt;")
                     line = line.replace(" ", "&nbsp;")
@@ -110,4 +110,13 @@ with gr.Blocks() as demo:
 
     emptyBtn.click(reset_state, outputs=[chatbot, history], show_progress=True)
 
-demo.queue().launch(share=False, server_name='0.0.0.0', server_port=7860,inbrowser=True)
+import hmac
+import os
+from util.security import check_startup_config, server_host
+
+check_startup_config()
+_api_key = os.environ.get('LLM_API_KEY')
+# When LLM_API_KEY is set, the web UI asks for it as the login password.
+_auth = (lambda _user, password: hmac.compare_digest(password.encode(), _api_key.encode())) if _api_key else None
+demo.queue().launch(share=False, server_name=server_host(), server_port=int(os.environ.get('WEB_PORT', 7860)),
+                    inbrowser=True, auth=_auth)

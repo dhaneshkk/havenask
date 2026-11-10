@@ -581,6 +581,19 @@ cc_library(
     alwayslink=True
 )
 cc_library(
+    name='shell_quote',
+    hdrs=['autil/ShellQuote.h'],
+    include_prefix='autil',
+    strip_include_prefix='autil',
+    visibility=['//visibility:public'],
+    deps=[]
+)
+cc_test(
+    name='shell_quote_test',
+    srcs=['autil/test/ShellQuoteTest.cpp'],
+    deps=[':shell_quote']
+)
+cc_library(
     name='string_helper',
     srcs=[
         'autil/FormatInt.cpp', 'autil/StringConvertor.cpp',
@@ -594,7 +607,7 @@ cc_library(
     include_prefix='autil',
     strip_include_prefix='autil',
     visibility=['//visibility:public'],
-    deps=[':string_type'],
+    deps=[':string_type', ':shell_quote'],
     alwayslink=True
 )
 cc_library(
@@ -848,7 +861,7 @@ cc_library(
     include_prefix='autil',
     strip_include_prefix='autil',
     visibility=['//visibility:public'],
-    deps=[]
+    deps=[':shell_quote']
 )
 cc_library(
     name='file_recorder',

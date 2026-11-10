@@ -654,7 +654,14 @@ bool FileUtil::getDirNames(const string &path, vector<string> &dirNames) {
 }
 
 bool FileUtil::localLinkCopy(const std::string &src, const std::string &dest) {
-    std::string cmd = "cp -alf " + FileUtil::joinFilePath(src, "*") + " " + dest;
+    if (src.empty() || dest.empty()) {
+        // With quoting, an empty src would become ''/* (i.e. /*).
+        AUTIL_LOG(ERROR, "localLinkCopy needs non-empty src and dest");
+        return false;
+    }
+    // Quote the paths but leave the trailing glob outside the quotes so the
+    // shell still expands it.
+    std::string cmd = "cp -alf " + StringUtil::shellQuote(src) + "/* " + StringUtil::shellQuote(dest);
     AUTIL_LOG(INFO, "exec cmd: %s", cmd.c_str());
     int ret = system(cmd.c_str());
     return (0 == ret);
@@ -957,9 +964,12 @@ bool FileUtil::listSubFiles(const string &dir, std::map<std::string, std::string
 }
 
 string FileUtil::dirName(const string &path) {
-    char tmpPath[PATH_MAX];
-    strcpy(tmpPath, path.c_str());
-    return string(dirname(tmpPath));
+    // dirname() may modify its argument, so work on a heap copy sized to the
+    // input instead of a fixed PATH_MAX stack buffer (paths from URIs/configs
+    // are not bounded by PATH_MAX).
+    std::vector<char> tmpPath(path.begin(), path.end());
+    tmpPath.push_back('\0');
+    return string(dirname(tmpPath.data()));
 }
 
 bool FileUtil::createLink(const string &target, const string &linkName, bool isSymlink) {

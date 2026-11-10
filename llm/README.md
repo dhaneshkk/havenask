@@ -117,6 +117,30 @@ EMBEDDING_MODEL=GanymedeNil/text2vec-large-chinese
 CHATGLM_MODEL=THUDM/chatglm-6b
 ```
 
+### 安全配置 (Security)
+服务默认只监听 `127.0.0.1`。如需对外暴露，必须同时设置 `SERVER_HOST` 和 `LLM_API_KEY`，否则服务会拒绝启动。
+
+Services bind to `127.0.0.1` by default. To expose them, set both `SERVER_HOST` and `LLM_API_KEY`; an unauthenticated server on a non-loopback address refuses to start.
+
+```
+# 对外监听地址 / bind address (default 127.0.0.1)
+#SERVER_HOST=0.0.0.0
+# API 密钥：请求需带 "Authorization: Bearer <key>" 或 "X-API-Key: <key>"；web_demo 用它作为登录密码
+# API key: send "Authorization: Bearer <key>" or "X-API-Key: <key>"; web_demo uses it as the login password
+#LLM_API_KEY=change-me
+# 上传文件大小上限（字节）/ max upload size in bytes (default 20 MiB)
+#MAX_UPLOAD_BYTES=20971520
+# 单次查询 topn 上限 / max topn per query (default 50)
+#MAX_TOPN=50
+# trust_remote_code 会执行模型仓库中的代码，请固定已审阅的版本
+# trust_remote_code runs the model repo's code: pin a reviewed commit
+#CHATGLM_REVISION=<commit sha>
+# 开发时自动重载 / auto-reload for development only
+#RELOAD=1
+```
+
+运行测试 / run tests: `pip install -r tests/requirements-test.txt && python -m pytest tests`
+
 ## 构建知识库
 使用[embed_files.py](script/embed_files.py)脚本对数据文件进行处理，目前支持```.md```和```.pdf```格式的文件。处理完成后会生成一个Havenask引擎格式的数据文件。
 例如处理Havenask wiki数据，忽略```.git```和```english```目录下的文件。

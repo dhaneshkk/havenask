@@ -55,7 +55,7 @@ class MarkdownExtractor(object):
         return content
 
     def remove_escape_char(self, content: str) -> str:
-        """
+        r"""
         去掉\，例如'\*'-〉'*'
         """
         content = re.sub(r'\\', '', content)

@@ -92,7 +92,7 @@ bool LocalHelper::stopApp() {
     }
     string killTemp = "ps uxwww | grep %s | grep -E 'swift_broker|swift_admin|local_admin_daemon' | awk -F' ' '{print "
                       "$2}' | xargs -I{} kill -%d {}";
-    string killCmd = StringUtil::formatString(killTemp.c_str(), _config->getApplicationId().c_str(), 10);
+    string killCmd = StringUtil::formatString(killTemp.c_str(), StringUtil::shellQuote(_config->getApplicationId()).c_str(), 10);
 
     pid_t ret = system(killCmd.c_str());
     AUTIL_LOG(INFO, "run stop[%s] ret[%d]", killCmd.c_str(), ret);
@@ -101,11 +101,11 @@ bool LocalHelper::stopApp() {
     string pstackTemp = "ps uxwww | grep %s | grep -E 'swift_broker|swift_admin' | grep -v grep | awk -F' "
                         "' '{print $2}' | xargs -I "
                         "{} pstack {} >> pstack.all";
-    string pstackCmd = StringUtil::formatString(pstackTemp.c_str(), _config->getApplicationId().c_str());
+    string pstackCmd = StringUtil::formatString(pstackTemp.c_str(), StringUtil::shellQuote(_config->getApplicationId()).c_str());
     ret = system(pstackCmd.c_str());
     AUTIL_LOG(INFO, "pstack [%s] ret[%d]", pstackCmd.c_str(), ret);
 
-    killCmd = StringUtil::formatString(killTemp.c_str(), _config->getApplicationId().c_str(), 9);
+    killCmd = StringUtil::formatString(killTemp.c_str(), StringUtil::shellQuote(_config->getApplicationId()).c_str(), 9);
     ret = system(killCmd.c_str());
     AUTIL_LOG(INFO, "run force stop[%s] ret[%d]", killCmd.c_str(), ret);
     return true;
@@ -119,11 +119,11 @@ bool LocalHelper::updateAdminConf() {
     string killTemp = "ps uxwww | grep %s | grep -E 'swift_admin|local_admin_daemon'| grep -v 'swift_admin_starter' | "
                       "awk -F' ' '{print $2}' "
                       "| xargs -I{} kill -%d {}";
-    string killCmd = StringUtil::formatString(killTemp.c_str(), _config->getApplicationId().c_str(), 10);
+    string killCmd = StringUtil::formatString(killTemp.c_str(), StringUtil::shellQuote(_config->getApplicationId()).c_str(), 10);
     pid_t ret = system(killCmd.c_str());
     AUTIL_LOG(INFO, "run stop admin [%s] ret[%d]", killCmd.c_str(), ret);
     usleep(2000 * 1000);
-    killCmd = StringUtil::formatString(killTemp.c_str(), _config->getApplicationId().c_str(), 9);
+    killCmd = StringUtil::formatString(killTemp.c_str(), StringUtil::shellQuote(_config->getApplicationId()).c_str(), 9);
     ret = system(killCmd.c_str());
     AUTIL_LOG(INFO, "run force stop admin [%s] ret[%d]", killCmd.c_str(), ret);
     const string &swiftDir = FileSystem::joinFilePath(_workDir, _config->getApplicationId());
@@ -145,7 +145,7 @@ bool LocalHelper::appExist() {
     string applicationId = _config->getApplicationId();
     string cmd = StringUtil::formatString(
         "ps xuwww | grep %s | grep swift_admin |grep -v grep |awk -F' ' '{printf \"%%s \",$2}'| xargs kill -0",
-        applicationId.c_str());
+        StringUtil::shellQuote(applicationId).c_str());
     AUTIL_LOG(INFO, "detecting exist of app[%s]", cmd.c_str());
     pid_t ret = system(cmd.c_str());
     if (ret == -1) {

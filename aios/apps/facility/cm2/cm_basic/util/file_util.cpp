@@ -483,13 +483,18 @@ int FileUtil::splitPath(char* path, char** pathes)
     return i;
 }
 
+// rpath must point to a buffer of at least PATH_MAX + 1 bytes.
 char* FileUtil::getRealPath(const char* path, char* rpath)
 {
     auto strRealPath = getRealPath(path);
     if (strRealPath.empty()) {
         return nullptr;
     }
-    strcpy(rpath, strRealPath.c_str());
+    if (strRealPath.size() > PATH_MAX) {
+        errno = ENAMETOOLONG;
+        return nullptr;
+    }
+    memcpy(rpath, strRealPath.c_str(), strRealPath.size() + 1);
     return rpath;
 }
 
@@ -503,6 +508,10 @@ std::string FileUtil::getRealPath(const char* path)
     int i;
     if (path == NULL) {
         errno = EINVAL;
+        return std::string();
+    }
+    if (strlen(path) > PATH_MAX) {
+        errno = ENAMETOOLONG;
         return std::string();
     }
     if (path[0] != '/') {

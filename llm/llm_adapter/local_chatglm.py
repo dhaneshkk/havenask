@@ -6,11 +6,18 @@ from util.torch_util import torch_gc
 
 class LocalChatGLM(object):
     MODEL_NAME = os.environ.get('CHATGLM_MODEL') or 'THUDM/chatglm-6b'
+    # trust_remote_code executes Python shipped with the model repo. Pin the
+    # exact commit you reviewed (CHATGLM_REVISION=<sha>) so an upstream change
+    # cannot run new code on this host.
+    MODEL_REVISION = os.environ.get('CHATGLM_REVISION') or None
     _INSTANCE = None
 
     def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME, trust_remote_code=True)
-        self.model = AutoModel.from_pretrained(self.MODEL_NAME, trust_remote_code=True)
+        if self.MODEL_REVISION is None:
+            logging.warning('CHATGLM_REVISION is not set: loading unpinned remote code for %s', self.MODEL_NAME)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME, trust_remote_code=True,
+                                                       revision=self.MODEL_REVISION)
+        self.model = AutoModel.from_pretrained(self.MODEL_NAME, trust_remote_code=True, revision=self.MODEL_REVISION)
         if torch.cuda.is_available():
             self.model.half().cuda()
         else:
