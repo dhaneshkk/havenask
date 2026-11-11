@@ -104,7 +104,7 @@ bool HavenaskUdfFactory::registeFunctions() {
                         "returns": [                        // 7
                             {
                                 "is_multi": false,
-                                "type": "boolean"
+                                "type": "double"
                             }
                         ]
                     }
@@ -131,8 +131,8 @@ bool HavenaskUdfFactory::registeFunctions() {
 
 ## 调试部署
 ### 调试方法
-* 可以创建hape_dev镜像并登录容器，用仓库根目录的./build.sh脚本编译代码
-* 一般来说，用户在开发havenask或者插件的时候都是用ha3_dev镜像编译开发的，不能直接拉起一个单机的ha3_runtime镜像测试最新的代码。为了解决这个问题，可以参考[hape配置](./config/hape-config.md)的global.conf.common中的processorMode字段，设值为local。此时执行hape命令相当于使用本地最新的代码，而非老版本runtime镜像里面的老代码
+* 可以创建ha3_dev镜像并登录容器，用仓库根目录的./build.sh脚本编译代码
+* 一般来说，用户在开发havenask或者插件的时候都是用ha3_dev镜像编译开发的，不能直接拉起一个单机的ha3_runtime镜像测试最新的代码。为了解决这个问题，可以参考[hape配置](./config/hape-config.md)的global.conf.common中的processorMode字段，设值为proc。此时执行hape命令相当于使用本地最新的代码，而非老版本runtime镜像里面的老代码
 
 ### 部署方法
 * 用仓库根目录的docker/havenask/runtime/Dockerfile来build自己的runtime镜像

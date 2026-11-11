@@ -254,7 +254,7 @@ offline_index_config的配置分为build_config， merge_config 和 customized_m
 
 ### cluster_config
 - hash_mode
-    - hash_filed: 用于计算hash值的字段名
+    - hash_field: 用于计算hash值的字段名
     - hash_function: hash函数，可填HASH/HASH64/GALAXY_HASH/NUMBER_HASH/KINGSO_HASH
 - builder_rule_config
     - partition_count: 索引需要build成多少个partition。
@@ -263,7 +263,7 @@ offline_index_config的配置分为build_config， merge_config 和 customized_m
     - merge_parallel_num: 默认的merge并行数（老的配置方式），如果在offline_index_config中配置了，会覆盖此处的配置。
     - batch_mode: build service模式下，增量builder是否常驻，如果为true，则每次定期merge时，启动build。
 ### swift_config
-swift_config是用于配置对中转topic（用于转发处里过的文档）的读写相关参数，可以为空，线上可以通过此项配置优化读写swift的性能。该配置只在非只写模式下生效，直写模式可以不用配置。
+swift_config是用于配置对中转topic（用于转发处里过的文档）的读写相关参数，可以为空，线上可以通过此项配置优化读写swift的性能。该配置只在非直写模式下生效，直写模式可以不用配置。
 - topic_full和topic_inc，如果全量和实时使用不同的中转topic，需要分别配置"topic_full"和"topic_inc"，否则只需要配置"topic"即可。
   -- partition_count，中转topic的分片，分片越大可以支持的数据更新越高。
   -- partition_min_buffer_size，每个分片最小缓存大小，单位MB。
@@ -276,7 +276,7 @@ swift_config是用于配置对中转topic（用于转发处里过的文档）的
   -- delete_topic_data，删除topic时清理对应的topic数据。
   -- topic_mode: topic模式，可以为security、memory_prefer、normal，默认为normal。
         -- security，同步写数据，数据写入时需要同步落盘才返回，数据安全但是会影响写入性能。
-        -- memory_perfer，数据一般不落盘，只有当下游超时没有消费时才落盘，只有在topci_full中生效，不建议生成使用。
+        -- memory_prefer，数据一般不落盘，只有当下游超时没有消费时才落盘，只有在topci_full中生效，不建议生成使用。
         -- normal，数据定期落盘。
 ### 直写模式相关配置
 * direct_write，true或者flase，为true时表示开启直接模式。

@@ -28,6 +28,7 @@ UDF 使用介绍
 | [vector_score](#vector_score) | 透出向量索引得分 | ALL |
 | [tfidf_score](#tfidf_score) | 计算文本匹配的tfidf得分 | ALL |
 | [bm25_score](#bm25_score) | 计算文本匹配的bm25得分 | ALL |
+| [ha_in](#ha_in) | 判断字段值在给定集合内 | ALL |
 
 
 
@@ -369,8 +370,8 @@ USE_TIME: 32.141ms, ROW_COUNT: 2
 
 - 原型
 ```
-boolean vector_score(const string index_name)
-boolean vector_score(const string index_name, double default_score)
+double vector_score(const string index_name)
+double vector_score(const string index_name, double default_score)
 ```
 
 - 说明
@@ -401,8 +402,8 @@ SELECT vector_score('vector_score', 1000.0) FROM phone where MATCHINDEX('vector_
 
 - 原型
 ```
-boolean tfidf_score()
-boolean tfidf_score(const string index_name)
+float tfidf_score()
+float tfidf_score(const string index_name)
 ```
 
 - 说明
@@ -424,7 +425,7 @@ boolean tfidf_score(const string index_name)
 ```sql
 SELECT tfidf_score() FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
 
-SELECT tfidf_score('default1') FROM phone where MATCHINDEX('default1', '阿里') AND where MATCHINDEX('default2', '阿里')
+SELECT tfidf_score('default1') FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
 ```
 
 
@@ -432,8 +433,8 @@ SELECT tfidf_score('default1') FROM phone where MATCHINDEX('default1', '阿里')
 
 - 原型
 ```
-boolean bm25_score()
-boolean bm25_score(const string index_name)
+float bm25_score()
+float bm25_score(const string index_name)
 ```
 
 - 说明
@@ -455,7 +456,7 @@ boolean bm25_score(const string index_name)
 ```sql
 SELECT bm25_score() FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
 
-SELECT bm25_score('default1') FROM phone where MATCHINDEX('default1', '阿里') AND where MATCHINDEX('default2', '阿里')
+SELECT bm25_score('default1') FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
 ```
 
 

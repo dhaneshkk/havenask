@@ -70,7 +70,7 @@ hape stop container -i <ip> -n <container-name>
 ### restart
 * 作用：重启集群
 * 参数：
-    * havenask/swift/container 表示停止havenask集群/swift集群/某个容器
+    * havenask/swift/container 表示重启havenask集群/swift集群/某个容器
     * container 表示重启某个容器，具体用法见[Hape运维场景](./scene.md)
 * 选项：
     * -c \<config\> 可选，表示指定hape配置，不传时默认为/ha3_install/hape_conf/default配置

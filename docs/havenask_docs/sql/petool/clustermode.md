@@ -53,7 +53,7 @@ order: 2
 ./<container_name>/sshme
 ```
 
-* 验证hape运行环境无明显异常。由于多级模式不采用默认配置，因此后面所有路径都需要指定分布式集群的配置路径/ha3_install/hape_conf/remote
+* 验证hape运行环境无明显异常。由于多机模式不采用默认配置，因此后面所有路径都需要指定分布式集群的配置路径/ha3_install/hape_conf/remote
 ```
 hape validate -c /ha3_install/hape_conf/remote
 ``` 

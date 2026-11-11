@@ -87,11 +87,11 @@ order: 3
         * args：启动参数
         * envs：环境变量
 * direct_table
-    * 作用：havenask集群直写表配置模板，主要包括[分析器配置](../config/analyzer.md)，[数据处理配置](../config/data_table.json.md)，[索引构建参数配置](../config/clusterconfig.md)。
+    * 作用：havenask集群直写表配置模板，主要包括[分析器配置](./config/analyzer.md)，[数据处理配置](./config/data_table.json.md)，[索引构建参数配置](./config/clusterconfig.md)。
 * offline_table
-    * 作用：havenask集群全量表配置模板，主要包括[分析器配置](../config/analyzer.md)，[数据处理配置](../config/data_table.json.md)，[索引构建参数配置](../config/clusterconfig.md)
+    * 作用：havenask集群全量表配置模板，主要包括[分析器配置](./config/analyzer.md)，[数据处理配置](./config/data_table.json.md)，[索引构建参数配置](./config/clusterconfig.md)
 * biz_config
-    * 在线集群启动时使用的配置信息，主要包括[分析器配置](../config/analyzer.md)，修改分析器时table中的分析器和biz_config下的analyzer.json配置文件都要修改。
+    * 在线集群启动时使用的配置信息，主要包括[分析器配置](./config/analyzer.md)，修改分析器时table中的分析器和biz_config下的analyzer.json配置文件都要修改。
 #### swift
 * config/swift_hippo.json
     * 作用：拉起swift broker的进程模板。
