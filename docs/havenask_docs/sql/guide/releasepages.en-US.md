@@ -3,5 +3,5 @@ toc: content
 order: 2
 ---
 
-# Published version
+# Released versions
 [0.2.2](https://github.com/alibaba/havenask/wiki/havenask:0.2.2)

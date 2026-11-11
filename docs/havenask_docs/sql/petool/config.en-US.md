@@ -26,17 +26,17 @@ order: 3
 #### common
 * Function: global parameter
 * Parameters
-   * domainZkRoot: indicates the root zk path of a data center. domainZkRoot/serviceName will be the root zk path of a cluster. When domainZkRoot is not specified, hape will help pull up the test zookeeper path.
+   * domainZkRoot: indicates the root zk path of a data center. domainZkRoot/serviceName will be the root zk path of a cluster. If domainZkRoot is not set, hape starts a test ZooKeeper for you.
    * binaryPath: indicates where the container process finds the havenask binary package. Generally, the default value is /ha3_install.
-   * dataStoreRoot: indicates the address of the index, configuration, and metadata files generated during the running of the HavenAsk cluster. Supports relative paths relative to the hapeRoot. It must be an hdfs path when in multi-machine mode
-   * hadoophome: indicates the hadoop path. The address must be in /home/\<user\> (you can set a soft link), and there must be a corresponding hadoop on all machines. The default value exists /usr/local/hadoop/hadoop points to the default path in the container.
-   * javaHome: indicates the java path. The address must be under /home/\<user\> (you can set a soft link), and the corresponding java must be available on all machines. The javaHome parameter must match the hadoopHome parameter. The default value exists /opt/taobao/java points to the default path in the container.
+   * dataStoreRoot: indicates the address of the index, configuration, and metadata files generated while the havenask cluster runs. Supports relative paths relative to the hapeRoot. It must be an hdfs path when in multi-machine mode
+   * hadoopHome: indicates the hadoop path. The address must be in /home/\<user\> (you can set a soft link), and there must be a corresponding hadoop on all machines. Defaults to /usr/local/hadoop/hadoop, the default path inside the container.
+   * javaHome: indicates the java path. The address must be under /home/\<user\> (you can set a soft link), and the corresponding java must be available on all machines. The javaHome parameter must match the hadoopHome parameter. Defaults to /opt/taobao/java, the default path inside the container.
 
 
 #### swift
 * Function: Swift cluster parameters
 * Parameters
-   * swiftZkRoot: indicates the swift zk path. When not specified, hape will help pull up the test swift.
+   * swiftZkRoot: indicates the swift zk path. If not set, hape starts a test swift for you.
    * serviceName:swift service name
    * image: image address
    * adminCpu: the CPU usage of the admin, divided by 100 is equal to the number of cores
@@ -87,11 +87,11 @@ order: 3
       * args: startup parameter
       * envs: environment variable
 * direct_table
-   * Function: the configuration template of the direct write table in the havenask cluster. The template includes [analyzer configuration](../config/analyzer.md), [data processing configuration](../config/data_table.json.md), and [index creation parameter configuration](../config/clusterconfig.md).
+   * Function: the configuration template of the direct-write table in the havenask cluster. The template includes [analyzer configuration](./config/analyzer.md), [data processing configuration](./config/data_table.json.md), and [index creation parameter configuration](./config/clusterconfig.md).
 * offline_table
-   * Function: a template for configuring all the tables in the havenask cluster. The template includes [analyzer configuration](../config/analyzer.md), [data processing configuration](../config/data_table.json.md), and [parameter configuration](../config/clusterconfig.md).
+   * Function: a template for configuring all the tables in the havenask cluster. The template includes [analyzer configuration](./config/analyzer.md), [data processing configuration](./config/data_table.json.md), and [parameter configuration](./config/clusterconfig.md).
 * biz_config
-   * The configuration information used when the online cluster is started, including the [analyzer configuration](../config/analyzer.md). When you modify the analyzer, you must modify the analyzer in the table and the analyzer.json configuration file in the biz_config file.
+   * The configuration information used when the online cluster is started, including the [analyzer configuration](./config/analyzer.md). When you modify the analyzer, you must modify the analyzer in the table and the analyzer.json configuration file in the biz_config file.
 #### swift
 * config/swift_hippo.json
    * Function: pulls the process template of the swift broker.

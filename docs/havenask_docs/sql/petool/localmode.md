@@ -129,4 +129,4 @@ hape delete swift
 ### 七. 更多
 * 更多集群子命令见[Hape子命令](./command.md)
 * 更多运维场景见[Hape运维场景](./scene.md)
-* 更多基于单机模式的例子见[hape/example/README.md](https://github.com/alibaba/havenask/blob/main/hape/example/README.md)
+* 更多基于单机模式的例子见[hape/example/README.md](https://github.com/alibaba/havenask/blob/main/aios/tools/hape/example/README.md)

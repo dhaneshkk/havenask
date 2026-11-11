@@ -6,7 +6,7 @@ order: 1
 # Engine configuration introduction
 ## Introduction
 * For each table created by the user, Hape renders a table configuration and sends it to the engine based on the global and scheduling information in the [Hape configuration](hape-config.md) configured by the user
-* Hape table configuration template located in hape_conf direct_tables (direct write table template) or offline_tables (full table template)
+* Hape table configuration template located in hape_conf direct_tables (direct-write table template) or offline_tables (full table template)
 
 
 <Tree>
@@ -17,8 +17,8 @@ order: 1
         <li>global.conf</li> 
         <li>cluster_templates
             <ul>
-            <li>havenask (havenask引擎进程配置)
-                <ul><li>direct_tables（直写表模板）/offline_tables（全量表模板）
+            <li>havenask (havenask engine process configuration)
+                <ul><li>direct_tables (direct-write table templates) / offline_tables (full table templates)
                 </li></ul>
                 <ul><li>clusters <ul><li>...</li></ul>
                 </li></ul>

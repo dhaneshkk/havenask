@@ -102,4 +102,4 @@ JAVA_HOME=<JAVA_HOME> HADOOP_HOME=<HADOOP_HOME> /ha3_install/usr/local/bin/fs_ut
 
 
 ### 如何判断进程在哪里
-* 执行havenask gs havenask命令可以查看进程分布在哪台机器上
+* 执行hape gs havenask命令可以查看进程分布在哪台机器上

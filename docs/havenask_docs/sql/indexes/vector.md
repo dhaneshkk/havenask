@@ -9,7 +9,7 @@ order: 7
 向量检索是指将图片或者内容等以向量的形式表达，并建立向量索引库，查询时支持输入一个或多个向量来根据向量距离返回topK个近似结果。  
 问天引擎深度集成了[proxima](https://github.com/alibaba/proxima)核心库，使问天引擎具有了向量检索的能力。问天引擎的向量索引支持图索引、聚类索引等多种主流的向量索引类型，并具有高性能、低成本的特点。以hnsw索引为例，在sift 1M和deep 10M公开测试集上，使用16core 64G的机器，问天引擎的向量索引可以达到数千qps和10ms以内的延迟。同时问天引擎的向量索引可以采用非全内存的模式加载，从而可以大大减少了对机器内存的开销，提升单机索引规模，降低机器成本。
 
-向量检索的示例请参考[向量示例](https://github.com/alibaba/havenask/tree/main/example/cases/vector)
+向量检索的示例请参考[向量示例](https://github.com/alibaba/havenask/tree/main/aios/tools/hape/example/cases/vector)
 
 ## 不带类目的向量配置
 ```
@@ -103,7 +103,7 @@ order: 7
 }
 ```
 
-- findex_fields：构建向量索引的字段，必须为RAW类型，最少包括2个字段，一个是主键（或者是主键的hash值），字段值必须是整数，另一个是包含向量的字段。如果需要对向量按照分类构建索引，可以新增一个分类字段，字段类型为RAW类型，字段值为整数。这些字段在索引中的顺序必须和在fields配置的顺序相同，而且必须是按照主键、类目（如果有）、向量这个顺序。RAW类型的字段可以通过内置的DupFieldProcessor从原始字段拷贝到目标字段，不需要再数据中添加RAW类型的字段，配置方式参考[向量数据处理配置](https://github.com/alibaba/havenask/tree/main/hape/example/cases/vector/vector_conf/cluster_templates/havenask/direct_table/data_tables/default_table.json)。
+- findex_fields：构建向量索引的字段，必须为RAW类型，最少包括2个字段，一个是主键（或者是主键的hash值），字段值必须是整数，另一个是包含向量的字段。如果需要对向量按照分类构建索引，可以新增一个分类字段，字段类型为RAW类型，字段值为整数。这些字段在索引中的顺序必须和在fields配置的顺序相同，而且必须是按照主键、类目（如果有）、向量这个顺序。RAW类型的字段可以通过内置的DupFieldProcessor从原始字段拷贝到目标字段，不需要再数据中添加RAW类型的字段，配置方式参考[向量数据处理配置](https://github.com/alibaba/havenask/blob/main/aios/tools/hape/hape_conf/vector/cluster_templates/direct_table/data_tables/default_table.json)。
 - name：向量索引的名称。
 - index_type：索引类型，必须为ANN。
 - indexer：构建向量索引的插件，目前仅支持aitheta2_indexer。

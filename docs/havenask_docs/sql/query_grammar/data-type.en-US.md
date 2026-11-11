@@ -19,8 +19,8 @@ Currently supported types of AtomicType:
 * double
 * string
 
-For more information about the data types supported by the system, see [Built-in field types](../../../indexes/fieldmapping).
+For more information about the data types supported by the system, see [Built-in field types](../indexes/fieldmapping.md).
 
 ## convert data types
-* In OpenSearch Vector Search Edition, the data types in a schema are automatically converted to the data types supported by SQL. The unsigned types in the schema are automatically converted to the signed types because SQL does not support unsigned types. Therefore, execution errors may occur due to type match failures or overflows. We recommend that you do not use the type conversion feature.
+* In havenask, the data types in a schema are automatically converted to the data types supported by SQL. The unsigned types in the schema are automatically converted to the signed types because SQL does not support unsigned types. Therefore, execution errors may occur due to type match failures or overflows. We recommend that you do not use the type conversion feature.
 * If data types are inconsistent, you can use the CAST operator to convert data types.

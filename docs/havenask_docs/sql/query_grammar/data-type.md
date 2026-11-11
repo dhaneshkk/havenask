@@ -19,7 +19,7 @@ AtomicType目前支持的类型:
 * double
 * string
 
-更多说明可参考[系统中的各种类型](../../../indexes/fieldmapping)。
+更多说明可参考[系统中的各种类型](../indexes/fieldmapping.md)。
 
 ## 类型转换
 * Ha3 Schema中的字段类型会自动转换成SQL类型；由于目前SQL不支持unsigned类型，转换时会自动提升成signed类型，在某些场景下会由于类型不匹配或溢出等原因导致执行错误，不建议使用；

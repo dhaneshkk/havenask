@@ -119,7 +119,7 @@ order: 3
 jieba分析器：他/来到/了/网易/杭研/大厦
 ```
 
-* 例子可参考，[自定义分析器示例](https://github.com/alibaba/havenask/tree/main/hape/example/cases/custom_analyzer)
+* 例子可参考，[自定义分析器示例](https://github.com/alibaba/havenask/tree/main/aios/tools/hape/example/cases/custom_analyzer)
 
 * 具体实现可参考，[jieba分析器](https://github.com/alibaba/havenask/tree/main/aios/plugins/havenask_plugins/analyzer_plugins)
 * 注意事项

@@ -50,7 +50,7 @@ order: 0
     * dataStoreRoot: 表示havenask集群运行中产生的索引、配置、元信息文件地址。支持相对于hapeRoot的相对路径。多机模式下时必须为hdfs路径
     * hadoopHome：表示hadoop路径，地址必须在/home/\<user\>下（可以设置软链接），且必须在所有机器上都有对应hadoop。存在默认值/usr/local/hadoop/hadoop指向容器内默认路径
     * javaHome: 表示java路径，地址必须在/home/\<user\>下（可以设置软链接），且必须在所有机器上都有对应java。javaHome必须和hadoopHome匹配。存在默认值/opt/taobao/java指向容器内默认路径
-    * processorMode: 默认情况单机模式下hape拉起单机多容器的集群。当额外设置该字段设为local的时候，hape拉起单机单容器多进程的集群，更方便调试和开发
+    * processorMode: 默认情况单机模式下hape拉起单机多容器的集群。当额外设置该字段设为proc的时候，hape拉起单机单容器多进程的集群，更方便调试和开发
 
 
 ### global.conf.swift

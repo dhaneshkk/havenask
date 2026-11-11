@@ -217,7 +217,7 @@ A PACK index is a multi-field index that is created on fields of the TEXT type. 
 - If no analyzer is specified for the index, the analyzers specified for all fields in the same index must be the same.
 - The order in which fields are configured must be the same as that in columns.
 - If you set both the high_frequency_dictionary and high_frequency_adaptive_dictionary parameters, a bitmap index is created by using the high-frequency words specified in the high_frequency_dictionary parameter, regardless of the rule specified in the high_frequency_adaptive_dictionary parameter.
-- You can specify the format_version_id parameter for all inverted indexes that are created on non-primary key columns. Before the offline phase starts, upgrade OpenSearch Vector Search Edition to the version that supports the corresponding format version online. Otherwise, the loading fails. The new version is supported online and formats of the old version can also be read.
+- You can specify the format_version_id parameter for all inverted indexes that are created on non-primary key columns. Before the offline phase starts, upgrade havenask to the version that supports the corresponding format version online. Otherwise, the loading fails. The new version is supported online and formats of the old version can also be read.
 - You can create a PACK index on a maximum of 32 fields.
 ### TEXT indexes
 #### TEXT index introduction

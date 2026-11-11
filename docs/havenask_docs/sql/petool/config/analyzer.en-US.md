@@ -5,7 +5,7 @@ order: 3
 
 # Analyzer configuration
 ## Structure
-The configuration of the word divider includes three parts: analyzer configuration, tokenizer configuration and complex conversion table configuration. A complete word divider configuration file Analyser.json is as follows:
+Analyzer configuration has three parts: analyzers, tokenizers, and traditional-to-simplified conversion tables. A complete analyzer configuration file, `analyzer.json`, looks like this:
 ```
 {   
     "analyzers":
@@ -85,61 +85,60 @@ The configuration of the word divider includes three parts: analyzer configurati
 }
 ```
 ### analyzers
-This section describes how to configure the word segmentation information that can be used in index construction and query. key indicates the name of the word segmentation, and value indicates the configuration information of the word segmentation. The following information can be configured for the word divider:
-- tokenizer_configs: indicates the configuration information of the tokenizer used by the word classifier.
-- tokenizer_type: type of the built-in tokenizer. If you need other parameters, set them to tokenizer_configs, for example, delimiter parameter for simple delimiter.
-- tokenizer_name: If the tokenizer used by the classifier is not a built-in tokenizer, set the tokenizer configuration information to tokenizer_config and reference it using the tokenizer_name parameter. Do not use tokenizer_configs and tokenizer_name at the same time.
-- stopwords: Stops the word list. It can be any string or empty.
-- case_sensitive: indicates whether the case is sensitive. If the case is sensitive, the original text is retained. If the case is not sensitive, the original text is converted to lowercase.
-- traditional_sensitive: indicates whether the simplified and traditional text is sensitive. If it is sensitive, the original text is retained; otherwise, the simplified text is changed.
-- width_sensitive: indicates whether the half corner is sensitive. If the half corner is sensitive, the original text is retained. Otherwise, the half corner is changed.
+Configures the analyzers available for building indexes and for queries. The key is the analyzer name and the value is its configuration. An analyzer can have:
+- `tokenizer_configs`: configuration of the tokenizer the analyzer uses.
+  - `tokenizer_type`: type of the built-in tokenizer. Any other parameters also go in `tokenizer_configs`, such as `delimiter` for the simple tokenizer.
+- `tokenizer_name`: if the analyzer's tokenizer is not built in, configure it in `tokenizer_config` and reference it here by name. Do not use `tokenizer_configs` and `tokenizer_name` together.
+- `stopwords`: stop-word list. Any strings, or empty.
+- `case_sensitive`: whether case matters. If `true`, the original text is kept; otherwise it is lowercased.
+- `traditional_sensitive`: whether traditional vs. simplified Chinese matters. If `true`, the original text is kept; otherwise it is converted to simplified Chinese.
+- `width_sensitive`: whether full-width vs. half-width characters matter. If `true`, the original text is kept; otherwise it is converted to half-width.
 
 ### tokenizer_config
-Configure the extended word segmentation information, mainly specify the dynamic library of the word segmentation and the parameters of the word segmentation.
-- modules, the dynamic library information of the word divider, if both are built-in analyzer modules can be empty (i.e. []).
--- module_name: specifies the dynamic library name inside the engine, starting with a letter or an underscore.
--- module_path, dynamic library name in the plugins directory.
--- parameters, which opens the dynamic library and is passed when creating the factory corresponding to the analyzer.
-- tokenizers, tokenizer configuration information. If the tokenizers are built-in analyzers, the Tokenizers can be empty (that is, []).
--- tokenizer_name: name of tokenizer, consistent with tokenizer_name in analyzer.
--- tokenizer_type indicates the tokenizer type. The dynamic library will create a corresponding tokenizer based on the tokenizer_type, so it must be consistent with the tokenizer in the code.
--- module_name, a module configured in modules, used to specify which dynamic library to use.
--- parameters, which is required for creating a tokenizer.
+Configures extension tokenizers: mainly the shared library that provides the tokenizer and its parameters.
+- `modules`: shared libraries that provide tokenizers. Can be empty (`[]`) if only built-in analyzers are used.
+  - `module_name`: name of the library inside the engine; must start with a letter or underscore.
+  - `module_path`: file name of the library in the plugins directory.
+  - `parameters`: parameters passed when the library is opened and the analyzer factory is created.
+- `tokenizers`: tokenizer definitions. Can be empty (`[]`) if only built-in analyzers are used.
+  - `tokenizer_name`: tokenizer name; matches `tokenizer_name` in `analyzers`.
+  - `tokenizer_type`: tokenizer type. The library creates the tokenizer based on this value, so it must match the tokenizer in the code.
+  - `module_name`: one of the modules configured in `modules`; selects which library to use.
+  - `parameters`: parameters needed to create the tokenizer.
 ### traditional_tables
-This parameter is optional. If there is no simplified translation table, do not configure it.
+Traditional-to-simplified Chinese conversion tables. Optional; omit if not needed.
 
-If traditional_sensitive is set to false, all traditional characters will be converted to simplified characters by default. You can set traditional_table corresponding to table_name to prevent special traditional characters from being converted to simplified characters.
-- transform_table: converts information about traditional and simplified Chinese characters.
+- `table_name`: name of the conversion table. When `traditional_sensitive` is `false`, all traditional characters are converted to simplified ones by default; reference a `traditional_table` by `table_name` to keep specific traditional characters from being converted.
+- `transform_table`: the traditional-to-simplified character mappings.
 
-## Common analyzer introduction
-### jieba Analyzer
-* Jieba Analyzer (jieba_analyzer) is based on the open-source jieba word segmentation implementation
+## Common analyzers
+### jieba analyzer
+* The jieba analyzer (`jieba_analyzer`) is built on the open-source jieba Chinese word segmenter.
 ```
-Original content: He came to NetEase Hangyan Building
-jieba Analyzer: He/came/came/netyi/Hangyan/mansion
+Input:          他来到了网易杭研大厦   ("He came to the NetEase Hangzhou Research building")
+jieba analyzer: 他/来到/了/网易/杭研/大厦
 ```
 
-* examples for reference, and [example] custom parsers (https://github.com/alibaba/havenask/tree/main/hape/example/cases/custom_analyzer)
+* For an example, see the [custom analyzer example](https://github.com/alibaba/havenask/tree/main/aios/tools/hape/example/cases/custom_analyzer).
 
-* specific implementation can reference, jieba analyzer (https://github.com/alibaba/havenask/tree/main/aios/plugins/havenask_plugins/analyzer_plugins)
-* Precautions
-- This analyzer only works with TEXT type fields
+* For the implementation, see the [jieba analyzer source](https://github.com/alibaba/havenask/tree/main/aios/plugins/havenask_plugins/analyzer_plugins).
+* Notes
+  - This analyzer only works with TEXT fields.
 
 ### Simple analyzer
-simple analyzer uses Spaces to separate fields (or query terms). It is suitable for search scenarios that cannot be solved by the system in special scenarios, and can achieve full user control.
+The simple analyzer (`simple`) splits field content (or query terms) on spaces (" "). Use it for special search scenarios the built-in analyzers can't handle; it gives you full control over how text is split.
 
-* Precautions
-- The parser applies only to TEXT fields. Specify the parser as simple when configuring the schema.
-- The analyzer does not support word segmentation.
+* Notes
+  - This analyzer only works with TEXT fields. Set the analyzer to `simple` in the schema.
+  - This analyzer does not support custom segmentation dictionaries.
 
-### Word Analyzer
-Word Analyzer (chn_single) classifiers words by word/word, suitable for non-semantic Chinese search scenarios.
+### Single-character analyzer
+The single-character analyzer (`chn_single`) splits Chinese text into individual characters (other runs, such as numbers, stay as words). It suits Chinese search where semantic segmentation isn't needed.
 ```
-Original content: Chrysanthemum Tea 123
-Word Analyzer: Juhua Tea 123
+Input:                      菊花茶123   ("chrysanthemum tea 123")
+single-character analyzer:  菊 花 茶 123
 ```
 
-* Precautions
-- The parser applies only to TEXT fields. Specify the parser as chn_single when configuring the schema.
-- The analyzer does not support word segmentation.
- 
+* Notes
+  - This analyzer only works with TEXT fields. Set the analyzer to `chn_single` in the schema.
+  - This analyzer does not support custom segmentation dictionaries.

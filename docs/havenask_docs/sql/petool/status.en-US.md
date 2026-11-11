@@ -82,7 +82,7 @@ order: 4
    * tableStructureConfig: table shards and types
       * shardCount Number of shards
       * shardFields primary key
-      * buildType DIRECT indicates a write-through table. If this field does not exist, it indicates a full table.
+      * buildType DIRECT indicates a direct-write table. If this field does not exist, it indicates a full table.
    * columns: table fields
    * indexes: table indexes
 ```
@@ -165,15 +165,15 @@ order: 4
    * LeaderAlive indicates whether the admin is running normally.
    * hippoZk indicates the zk address scheduled by the service worker process.
    * The meaning of processors is the same as that of processors in the havenask state.
-   * bs's role mainly includes the following, which will be dynamically pulled up according to the situation:
-      * prepare_data_source full preparation node
-      * processor.full full document preprocessing
-      * builder.full full index building
-      * merge. full full index merge
-      * processor.inc Real-time Document Preprocessing
-      * builder.inc Incremental index building
-      * merge. inc Incremental index merge
-   * When the full process is all finished and the inc process is pulled up, it means full completion.
+   * The main build service roles are listed below; they are started dynamically as needed:
+      * `prepare_data_source`: prepares the full data
+      * `processor.full`: full document preprocessing
+      * `builder.full`: full index building
+      * `merger.full`: full index merging
+      * `processor.inc`: real-time document preprocessing
+      * `builder.inc`: incremental index building
+      * `merger.inc`: incremental index merging
+   * When every `full` process has finished and the `inc` processes have started, the full build is complete.
    * buildInfo indicates the index task that is currently being built.
       * generationId indicates the sequence number of the task.
       * tableName indicates the table for which the index is being built
