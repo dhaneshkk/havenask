@@ -1,72 +1,74 @@
-# 介绍
-本项目将Havenask与大模型结合，Havenask作为向量数据库，实现基于文档的问答系统。可以使用ChatGPT服务，也可以全部基于开源方案（ChatGLM-6b）实现本地的私有部署。
+English | [简体中文](README.zh-CN.md)
 
-流程图如下：
+# Introduction
+This project combines Havenask with large language models, using Havenask as the vector database, to build a document-based question answering system. It can use the ChatGPT service, or run fully on open-source components (ChatGLM-6b) for a private local deployment.
 
-![流程图](/llm/resources/flow.jpg)
+Flow chart:
 
-# 开始
-更简单的使用Havenask的方式是在[阿里云OpenSearch](https://www.aliyun.com/product/opensearch)上创建实例，详情请参考[OpenSearch+大模型方案](https://help.aliyun.com/document_detail/2341640.html)。
+![Flow chart](resources/flow.jpg)
 
-如果需要本地部署Havenask，可以按下列步骤进行。
+# Getting started
+The simplest way to use Havenask is to create an instance on [Alibaba Cloud OpenSearch](https://www.aliyun.com/product/opensearch); see the [OpenSearch + LLM solution](https://help.aliyun.com/document_detail/2341640.html) (in Chinese).
 
-## 环境要求
-* CPU 16核, 64G内存
-* GPU需要16G显存
-* 需要安装docker环境
+To deploy Havenask locally, follow the steps below.
 
-## Docker容器中使用GPU
-如果需要在docker容器中使用GPU
+## Requirements
+* 16 CPU cores, 64 GB of memory
+* A GPU with 16 GB of memory
+* Docker
 
-1. docker版本大于等于19.03
-2. 在宿主机上安装
+## Using the GPU inside a Docker container
+To use the GPU inside a Docker container:
+
+1. Docker 19.03 or later.
+2. On the host, install:
 * [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
 * [nvidia-container-runtime](https://github.com/NVIDIA/nvidia-container-runtime#installation)
-3. 在```docker/create_container.sh```脚本中，docker run命令增加参数```--gpus all```
+3. In `docker/havenask/create_container.sh`, add `--gpus all` to the `docker run` command.
 
-## 准备容器
-* 克隆havenask仓库
+## Prepare the container
+* Clone the havenask repository
 ```shell
 git clone https://github.com/alibaba/havenask.git
 ```
 
-* 创建容器
+* Create the container
 ```shell
-cd ~/havenask/docker
+cd ~/havenask/docker/havenask
 ./create_container.sh havenask registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
 
-* 登陆容器
+* Log in to the container
 ```shell
 ./havenask/sshme
 ```
 
-详情请参考[havenask](https://github.com/alibaba/havenask#%E5%BC%80%E5%A7%8B%E4%BD%BF%E7%94%A8)
+For details, see [havenask](https://github.com/alibaba/havenask#get-started).
 
-## 安装依赖
-使用[conda](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html)管理python环境。下载linux环境的```Anaconda```，按提示步骤完成安装。
+## Install dependencies
+Manage the Python environment with [conda](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html). Download `Anaconda` for Linux and follow the installer's prompts.
 
 ```shell
 bash Anaconda3-2023.03-1-Linux-x86_64.sh
 ```
 
-安装完conda后， 执行下面的命令创建并激活python环境
+After installing conda, create and activate a Python environment:
 ```shell
 source ~/.bashrc
 conda create --name havenask_llm python=3.10
 conda activate havenask_llm
 ```
 
-安装python依赖
+Install the Python dependencies:
 ```shell
-cd ~/havenask/llm  # 当前目录为/home/$USER
+cd ~/havenask/llm  # the current directory is /home/$USER
 pip install -r requirements.txt
 ```
 
-## 配置文件
-在 ```.env```文件中配置大模型相关信息
+## Configuration
+Configure the model settings in the `.env` file.
 
-* 使用ChatGPT
+* Using ChatGPT
 ```conf
 LLM_NAME=OpenAI
 
@@ -81,7 +83,7 @@ HA_QRS_ADDRESS=127.0.0.1:45800
 HA_TABLE_NAME=llm
 ```
 
-* 使用微软azure OpenAI
+* Using Microsoft Azure OpenAI
 ```conf
 LLM_NAME=OpenAI
 
@@ -90,17 +92,17 @@ OPENAI_API_BASE=***
 OPENAI_API_VERSION=2023-03-15-preview
 OPENAI_API_TYPE=azure
 
-# 填写azure中OpenAI模型的deployment
+# Your Azure OpenAI model deployments
 OPENAI_EMBEDDING_ENGINE=embedding_deployment_id
 OPENAI_CHAT_ENGINE=chat_deployment_id
 
 VECTOR_STORE=Havenask
-# Havenask信息
+# Havenask settings
 HA_QRS_ADDRESS=127.0.0.1:45800
 HA_TABLE_NAME=llm
 ```
 
-* 使用ChatGLM-6b
+* Using ChatGLM-6b
 ```conf
 LLM_NAME=ChatGLM
 
@@ -108,79 +110,77 @@ VECTOR_STORE=Havenask
 HA_QRS_ADDRESS=127.0.0.1:45800
 HA_TABLE_NAME=llm
 
-# 模型服务地址, 可选
+# Model service addresses (optional)
 #CHATGLM_SERVER_ENDPOINT=http://127.0.0.1:8001/
 #EMBEDDING_SERVER_ENDPOINT=http://127.0.0.1:8008/
 
-# 开源模型名称，如果服务地址为空，则本地加载模型
+# Open-source model names; if no service address is set, the models are loaded locally
 EMBEDDING_MODEL=GanymedeNil/text2vec-large-chinese
 CHATGLM_MODEL=THUDM/chatglm-6b
 ```
 
-### 安全配置 (Security)
-服务默认只监听 `127.0.0.1`。如需对外暴露，必须同时设置 `SERVER_HOST` 和 `LLM_API_KEY`，否则服务会拒绝启动。
-
+### Security
 Services bind to `127.0.0.1` by default. To expose them, set both `SERVER_HOST` and `LLM_API_KEY`; an unauthenticated server on a non-loopback address refuses to start.
 
 ```
-# 对外监听地址 / bind address (default 127.0.0.1)
+# Bind address (default 127.0.0.1)
 #SERVER_HOST=0.0.0.0
-# API 密钥：请求需带 "Authorization: Bearer <key>" 或 "X-API-Key: <key>"；web_demo 用它作为登录密码
-# API key: send "Authorization: Bearer <key>" or "X-API-Key: <key>"; web_demo uses it as the login password
+# API key: requests must send "Authorization: Bearer <key>" or "X-API-Key: <key>"; web_demo uses it as the login password
 #LLM_API_KEY=change-me
-# 上传文件大小上限（字节）/ max upload size in bytes (default 20 MiB)
+# Maximum upload size in bytes (default 20 MiB)
 #MAX_UPLOAD_BYTES=20971520
-# 单次查询 topn 上限 / max topn per query (default 50)
+# Maximum topn per query (default 50)
 #MAX_TOPN=50
-# trust_remote_code 会执行模型仓库中的代码，请固定已审阅的版本
-# trust_remote_code runs the model repo's code: pin a reviewed commit
+# trust_remote_code runs code from the model repository: pin a commit you have reviewed
 #CHATGLM_REVISION=<commit sha>
-# 开发时自动重载 / auto-reload for development only
+# Auto-reload, for development only
 #RELOAD=1
 ```
 
-运行测试 / run tests: `pip install -r tests/requirements-test.txt && python -m pytest tests`
+Run the tests: `pip install -r tests/requirements-test.txt && python -m pytest tests`
 
-## 构建知识库
-使用[embed_files.py](script/embed_files.py)脚本对数据文件进行处理，目前支持```.md```和```.pdf```格式的文件。处理完成后会生成一个Havenask引擎格式的数据文件。
-例如处理Havenask wiki数据，忽略```.git```和```english```目录下的文件。
+## Build the knowledge base
+Process your data files with [embed_files.py](script/embed_files.py). It currently supports `.md` and `.pdf` files and produces a data file in Havenask engine format.
+For example, to process the Havenask wiki while skipping files under `.git` and `english`:
 ```shell
 git clone https://github.com/alibaba/havenask.wiki.git
 python -m script.embed_files -f havenask.wiki -o ./llm.data -i .git,english
 ```
 
-* -f选项指定需要构建的文档目录
+* `-f` sets the directory of documents to process.
 
-如果从```Huggingface```自动下载模型失败，参考[从本地加载模型](README.md#本地加载模型)，手动下载模型。
+If downloading the models from `Huggingface` fails, download them manually; see [Load models locally](#load-models-locally).
 
-### 构建索引并启动服务
-将上一步生成的数据文件```llm.data```拷贝到```/ha3_install/example/data/llm.data```，启动havenask服务，case脚本会将数据写入引擎。根据需要可以修改端口号，并将```.env```中配置的QRS端口一并修改。
+### Build the index and start the service
+Copy the generated `llm.data` to `/ha3_install/example/data/llm.data` and start the havenask service; the case script writes the data into the engine. Change the port if needed, and update the QRS port in `.env` to match.
 
 ```shell
 cp ./llm.data /ha3_install/example/data/llm.data
 /ha3_install/example/common/case.py run --case llm
 ```
-* Havenask服务目前需要python2.7启动任务
+* The Havenask service currently needs Python 2.7 to start these tasks.
 
-## 启动问答服务
-### api部署
+## Start the Q&A service
+### API
 ```shell
 cd ~/havenask/llm
 python api_demo.py
 ```
-测试请求
+Test request ("havenask是什么" means "What is havenask?"; the default models and knowledge base are Chinese):
 ```shell
 curl -H "Content-Type: application/json" http://127.0.0.1:8000/chat -d '{"query": "havenask是什么"}'
 ```
-输出:
+If you set `LLM_API_KEY`, add `-H "Authorization: Bearer <key>"`.
+
+Output (abridged; the answer says that havenask is a distributed system developed by Alibaba that supports SQL queries and built-in and plugin UDFs, and can be deployed with the distributed operations tool):
 ```json
 {
     "success":true,
-    "result":"havenask 是一个分布式数据库管理系统，由阿里巴巴开发。它支持 SQL 查询语句，并提供了内置的 UDF(User Defined Function)功能，允许客户以插件形式开发自己的 UDF。havenask 可以用于存储、处理和分析大规模数据，具有高可用性、可扩展性和高性能的特点。havenask 可以通过分布式运维工具进行部署，支持在物理机上拉起分布式集群，也可以在云平台上使用云原生架构进行部署。",
+    "result":"havenask 是一个分布式数据库管理系统，由阿里巴巴开发。它支持 SQL 查询语句，并提供了内置的 UDF(User Defined Function)功能，允许客户以插件形式开发自己的 UDF。...",
     "history":[
         [
-            "已知信息：\n                Content: NAME> havenask/ha3_runtime:latest\n```\n\n* 登陆容器\n```\n./<CONTAINER_NAME>/sshme\n```\n\n* 运行测试 \n启动运行时容器后，构建测试数据索引以及查询引擎的方法见example\n\n## 集群模式\n集群模式需要通过Havenask的分布式运维工具部署，详细信息请参考Havenask分布式运维工具\n# 编译代码\n\n## 编译环境\n* 请确保编译的机器内存在15G以上，mac编译时需调整Docker容器资源上限（包括CPU、Memory、Swap等），具体路径：Docker Desktop->setting->Resources。\n* 请确保cpu位8core以上，不然编译比较慢。\n\n## 获取开发镜像\n\n```\ndocker pull havenask/ha3_dev:latest\n```\n## 下载代码\n```\ncd ~\ngit clone git@github.com:alibaba/havenask.git\n```\n\n## 启动容器\n```\ncd ~/havenask/docker\n./\nContent: ### 简介\n\nhavenask SQL支持在查询语句中使用内置的UDF（User Defined Function)，也允许客户以插件形式开发自己的UDF。\nContent: # 介绍\nHavenask PE tools，简称hape，是havenask的简易分布式运维工具。用户可以利用hape在单台或者多台物理机上拉起分布式havenask集群，并进行基础的运维操作。\n\n# 名词解释\n* domain\n * 一个havenask集群被称为一个domain，一个hape工具可以管理多个domain\n* config\n * hape config：关于havenask集群部署计划的配置文件，一个domain有一个hape config\n * biz config：havenask引擎本身加载的配置，分为离线配置offline config和在线配置online config\n* hape cmd\n * hape命令行工具，负责向domain daemon提交用户请求\n* hape domain daemon\n * 每当用户使用hape cmd创建一个domain，hape cmd都会在所在机器后台启动一个domain daemon进程用于专门管理该domain。所有hape cmd命令都会在后台被domain daemon异步处理\n* hape worker & worker daemon\n * hape worker\n \n\n                根据上述已知信息，简洁和专业的来回答用户的问题。如果无法从中得到答案，请说不知道，不允许在答案中添加编造成分，答案请使用中文。\n                问题是：havenask是什么",
-            "havenask 是一个分布式数据库管理系统，由阿里巴巴开发。它支持 SQL 查询语句，并提供了内置的 UDF(User Defined Function)功能，允许客户以插件形式开发自己的 UDF。havenask 可以用于存储、处理和分析大规模数据，具有高可用性、可扩展性和高性能的特点。havenask 可以通过分布式运维工具进行部署，支持在物理机上拉起分布式集群，也可以在云平台上使用云原生架构进行部署。"
+            "已知信息：\n                Content: ... 问题是：havenask是什么",
+            "havenask 是一个分布式数据库管理系统，由阿里巴巴开发。..."
         ]
     ],
     "source":["快速开始.md","UDF.md","Havenask分布式运维工具.md"],
@@ -188,78 +188,80 @@ curl -H "Content-Type: application/json" http://127.0.0.1:8000/chat -d '{"query"
 }
 ```
 
-### cli方式
+### CLI
 ```shell
 cd ~/havenask/llm
 python cli_demo.py
 ```
-输入exit退出，输入clear会清空history，输入其他内容进行问答。
-![cli-demo](/llm/resources/clidemo.jpg)
+Type `exit` to quit, `clear` to clear the history, or anything else to ask a question.
+![cli-demo](resources/clidemo.jpg)
 
-### webdemo
+### Web demo
 ```shell
 cd ~/havenask/llm
 python web_demo.py
 ```
-在浏览器中打开返回的web地址，方便使用
-![cli-demo](/llm/resources/webdemo.jpg)
+Open the printed web address in your browser.
+![web-demo](resources/webdemo.jpg)
 
 # FAQ
-## 远程部署模型
-ChatGLM-6b部署所需要的资源可以参考[官方文档](https://github.com/THUDM/ChatGLM-6B#%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F)
+## Deploy the models remotely
+For the resources ChatGLM-6b needs, see the [official documentation](https://github.com/THUDM/ChatGLM-6B#%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F).
 
-如果本地机器资源不足，可以选择远程部署模型，如在带GPU的ECS上。部署脚本参考[deploy_embedding.py](script/deploy_embedding.py)和[deploy_chatglm.py](script/deploy_chatglm.py)。脚本会从```huggingface```自动下载模型文件。部署脚本依赖```torch```和```transformers```。
+If the local machine lacks resources, you can deploy the models remotely, for example on a GPU ECS instance. See the deployment scripts [deploy_embedding.py](script/deploy_embedding.py) and [deploy_chatglm.py](script/deploy_chatglm.py). They download the model files from `huggingface` automatically and depend on `torch` and `transformers`.
 
-* 部署向量化模型
+* Deploy the embedding model
 ```shell
 python script/deploy_embedding.py
 ```
-默认端口8001
+Default port: 8008
 
-* 部署ChatGLM-6b
+* Deploy ChatGLM-6b
 ```shell
 python script/deploy_chatglm.py
 ```
-默认端口8008
+Default port: 8001
 
-* 修改```.env```中的服务地址
+Both servers listen on `127.0.0.1` and have no authentication. To reach them from another machine, set `SERVER_HOST` and put them behind a network you trust.
+
+* Update the service addresses in `.env`
 ```conf
 CHATGLM_SERVER_ENDPOINT=http://{ip}:8001/
 EMBEDDING_SERVER_ENDPOINT=http://{ip}:8008/
 ```
 
-## 更换模型
+## Change the models
 
-本项目默认使用大模型[ChatGLM6b](https://huggingface.co/THUDM/chatglm-6b)与向量化模型[GanymedeNil/text2vec-large-chinese](https://huggingface.co/GanymedeNil/text2vec-large-chinese)
+By default this project uses the [ChatGLM-6b](https://huggingface.co/THUDM/chatglm-6b) LLM and the [GanymedeNil/text2vec-large-chinese](https://huggingface.co/GanymedeNil/text2vec-large-chinese) embedding model.
 
-更换模型需要修改```.env```文件中的模型名称，并在llm_adapter中增加加载新模型的adapter，可以参考[local_chatglm.py](llm_adapter/local_chatglm.py)，远程部署参考[deploy_chatglm.py](script/deploy_chatglm.py)。
+To change models, set the model names in `.env` and add an adapter in `llm_adapter` that loads the new model; see [local_chatglm.py](llm_adapter/local_chatglm.py), and [deploy_chatglm.py](script/deploy_chatglm.py) for remote deployment.
 
-因为不同的文本向量化模型生成的embedding维度不同，因此需要修改havenask配置中的维度信息，修改以下文件中```dimension```的值：
+Different embedding models produce embeddings of different dimensions, so update the dimension in the havenask configuration by changing `dimension` in:
 ```
 /ha3_install/example/cases/llm/in0_schema.json
 ```
 
-## 本地加载模型
-代码会使用```transformers```自动从huggingface下载模型。如果网络环境比较差，下载模型很慢或者经常超时。可以手动下载模型到本地目录，然后从本地加载模型。
+## Load models locally
+The code uses `transformers` to download models from Hugging Face automatically. On a poor network, downloads can be slow or time out. You can download the models to a local directory and load them from there.
 
-* 安装 [Git LFS](https://docs.github.com/zh/repositories/working-with-files/managing-large-files/installing-git-large-file-storage)
-* 从Huggingface下载模型至本地:
+* Install [Git LFS](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage)
+* Download the models from Hugging Face:
 ```shell
 cd ~/havenask
 git clone https://huggingface.co/THUDM/chatglm-6b
 git clone https://huggingface.co/GanymedeNil/text2vec-large-chinese
 ```
-* 将```.env```中的模型名称换成本地的```绝对路径```，如：
+* In `.env`, replace the model names with their local **absolute paths**, for example:
 ```
 EMBEDDING_MODEL=/home/{USER}/havenask/text2vec-large-chinese
 CHATGLM_MODEL=/home/{USER}/havenask/chatglm-6b
 ```
-将USER替换成实际的用户名称，这里需要模型目录的绝对路径。
+Replace `USER` with your actual user name; the model directories must be absolute paths.
 
-## 更换文件内容切片方式
-默认的切片方式为按token数加overlap的方式进行切片，参考[sentence_spliter.py](spliter/sentence_spliter.py)实现新的切片方式
+## Change how files are split into chunks
+By default, files are split by token count with overlap. To implement a different splitter, see [sentence_spliter.py](spliter/sentence_spliter.py).
 
-# 特别提醒：
-本解决方案中的“开源向量模型”、“大模型（如chatgpt）”等来自第三方（合称“第三方模型”）。阿里巴巴无法保证第三方模型合规、准确，也不对第三方模型本身、及您使用第三方模型的行为和结果等承担任何责任。请您在访问和使用前慎重考虑。
+# Important notice
+The "open-source embedding models", "large language models (such as ChatGPT)" and similar components in this solution come from third parties (together, "third-party models"). Alibaba cannot guarantee that third-party models are compliant or accurate, and takes no responsibility for the third-party models themselves or for your use of them and its results. Please consider carefully before accessing and using them.
 
-此外我们也提醒您，第三方模型附有“开源许可证”、“License”等协议，您应当仔细阅读并严格遵守这些协议的约定。
+Third-party models also come with their own open-source licenses and other agreements. Read them carefully and comply with them strictly.
