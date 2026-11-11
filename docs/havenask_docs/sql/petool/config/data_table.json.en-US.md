@@ -67,15 +67,15 @@ processor_chain_config is an array that can contain multiple processing chains. 
             ]
         }
 ```
-* clusters: Configure the index building of which index tables are used for the documents produced by this processing chain.
-* document_processor_chain: specifies the processing flow of the document_processor_chain. Set the following parameters for each processing node.
-* class_name: The name of the processing node, which needs to be the same as the name set in the processing node implementation class.
-* module_name: name of the dynamic library where the class of the processing node resides. If the built-in module_name of the processing node needs to be set to null, you can refer to the build_service/processor directory for supported processing nodes.
-* parameters: A kv map, value must be a string, handle the node's parameters.
-modules: Configures a dynamic library of plugins used in the processing chain. If the nodes in the processing chain are all built-in nodes, modules can be configured as an empty array. (<font color="red"> Note: The current version of the custom processor plug-in must be defined as a built-in plug-in. See the processor plug-in example. </font>)
-* module_name: module name. The value can be any string and must be the same as module_name in the processing node.
-* module_path: dynamic library path relative to the path of the plugins directory in the configuration directory.
-* parameters: A kv map, value must be a string, dynamic library parameters.
+* `clusters`: which index tables the documents produced by this chain are used to build.
+* `document_processor_chain`: the processing steps of this chain. Each processing node takes these parameters:
+  * `class_name`: name of the processing node; must match the name set in the node's implementation class.
+  * `module_name`: name of the shared library containing the node's class. Leave it empty for built-in nodes; see the `build_service/processor` directory for the nodes the system provides.
+  * `parameters`: a key-value map of the node's parameters; values must be strings.
+* `modules`: shared libraries of the plugins used in the chain. If every node in the chain is built in, this can be an empty array. (<font color="red">Note: in the current version, custom processor plugins must be defined as built-in plugins; see the processor plugin example.</font>)
+  * `module_name`: name of the module; any string, but it must match `module_name` in the processing nodes.
+  * `module_path`: path of the shared library, relative to the `plugins` directory in the configuration directory.
+  * `parameters`: a key-value map of the library's parameters; values must be strings.
 
 ### processor_config
 ```
@@ -84,8 +84,8 @@ modules: Configures a dynamic library of plugins used in the processing chain. I
     "processor_thread_num" : 10
 }
 ```
-* processor_thread_num: Number of threads to process the data. The more threads, the faster the data is processed when the cpu resources are sufficient.
-* processor_queue_size: specifies the size of the data processing queue. Newly read data will wait in the queue to be processed. No new data will be read when the queue is full.
+* `processor_thread_num`: number of data-processing threads. With enough CPU, more threads process data faster.
+* `processor_queue_size`: size of the processing queue. Newly read data waits in this queue; no new data is read while it is full.
 
 ### processor_rule_config
 ```
@@ -94,5 +94,5 @@ modules: Configures a dynamic library of plugins used in the processing chain. I
     "partition_count" : 1
 }
 ```
-* partition_count: indicates the number of data processing processes. You are advised to set this parameter to 1 during local index construction.
-* parallel_num: parallel_num: concurrency of data processing when it is full. Number of data processing processes started when it is full =parallel_num * partition_count. You are advised to set the local index to 1.
+* `partition_count`: number of data-processing processes. Set it to 1 when building indexes locally.
+* `parallel_num`: data-processing parallelism for full builds. A full build starts `parallel_num * partition_count` processing processes. Set it to 1 when building indexes locally.

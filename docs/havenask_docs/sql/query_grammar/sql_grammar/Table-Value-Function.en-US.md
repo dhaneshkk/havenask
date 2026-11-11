@@ -5,7 +5,7 @@ order: 30321
 
 # Table-Value-Function
 ## Description
-OpenSearch Retrieval Engine Edition supports table-valued functions (TVFs). <br />TVF is used in TuringSQL to represent a set of functions that can perform operations on the entire table. The inputs of a TVF include one or more scalar parameters and an SQL statement that specifies a table. The output of a TVF is a table.
+Havenask supports table-valued functions (TVFs). <br />TVF is used in TuringSQL to represent a set of functions that can perform operations on the entire table. The inputs of a TVF include one or more scalar parameters and an SQL statement that specifies a table. The output of a TVF is a table.
 
 
 <a name="jExuk"></a>
@@ -92,4 +92,4 @@ FROM
 
 <a name="cLMVl"></a>
 ## Built-in TVFs
-[Built-in TVF list](../../../custom_function/buildin_tvf.md)**
+[Built-in TVF list](../custom_function/tvf/buildin_tvf.md)**

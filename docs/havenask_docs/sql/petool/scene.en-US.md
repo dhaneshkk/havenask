@@ -3,36 +3,40 @@ toc: content
 order: 5
 ---
 
-# Common O&M scenarios of Hape
+# Common Hape operations
 
-### hape manage multiple clusters
-* All commands of hape support the optional parameter-c to specify the cluster configuration path.
-* In the configuration, the domainZkRoot of global.conf and the serviceName of each cluster are used to isolate different clusters to manage multiple clusters.
-* However, it should be noted that the admin, qrs and searcher ports of the current version of havenask cluster are fixed. if you want to manage multiple clusters, it is better to set different ports to prevent port conflicts.
+## Manage multiple clusters with hape
+* Every hape command accepts the optional `-c` parameter to specify the cluster configuration path.
+* Clusters are isolated from each other by `domainZkRoot` in `global.conf` together with each cluster's `serviceName`, which lets one hape manage multiple clusters.
+* Note that in the current version the admin, QRS and searcher ports of a havenask cluster are fixed. If you manage multiple clusters, give them different ports to avoid conflicts.
 
-### Update a cluster template
-* The cluster_templates under Cluster Configuration represent the cluster template. User-created clusters and tables generate actual configurations based on template rendering
-* After the user updates the template, the user needs to call the following subcommand. The cluster template is managed by the havenask admin and cannot be dynamically updated in the current version. Therefore, you need to call the following command. The havenask admin will restart (worker will not) and reload the latest cluster configuration.
+## Update the cluster templates
+* `cluster_templates` in the cluster configuration holds the cluster templates. The clusters and tables you create get their actual configuration by rendering these templates.
+* After you change a template, run the subcommand below. Templates are managed by the havenask admin and cannot be updated dynamically in the current version, so this command restarts the havenask admin (not the workers), which then reloads the latest cluster configuration.
 ```
-### Update existing cluster configurations based on a template
+## Update existing cluster configuration from the templates
 hape update template
 ```
-* The current version does not support new files in the template, but only supports the modification of existing files such as searcher_hippo.json in the template.
+* The current version does not support adding new files to a template; you can only modify files that already exist in it, such as `searcher_hippo.json`.
 
-### Update a table schema
-* The current version does not support dynamically updating existing tables. Therefore, you need to delete the table before creating the table.
+## Update a table schema
+* Versions before 1.1.0 cannot update an existing table dynamically, so delete the table and create it again:
 ```
 hape delete table <options-and-arguments>
 hape create table <options-and-arguments>
 ```
-
-### Update table configurations
-* If you only want to update the template so that it takes effect on the new table, you only need to call the
+* From 1.1.0, the schema of a full table can be updated dynamically. A full build runs automatically and the index is switched over when it finishes:
 ```
-### Update existing cluster configurations based on a template
+hape update table-schema <options-and-arguments>
+```
+
+## Update table configuration
+* If you only want template changes to apply to newly created tables, run:
+```
+## Update existing cluster configuration from the templates
 hape update template
 ```
-* If you want to update the configuration of the old table, The current version does not support dynamic update of existing tables. Therefore, you need to delete tables, update templates, and then create tables. In this case, the database may not be ready. You must run the gs command to check whether the database is ready. For more information, see [Hape cluster status](./status.md).
+* To update the configuration of an existing table: the current version cannot update existing tables dynamically, so delete the table, update the templates, then create the table again. The database may not be ready immediately afterwards; use the `gs` command to check that it eventually becomes ready (see [Hape cluster status](./status.md)).
 ```
 hape delete table <options-and-arguments>
 hape update template
@@ -43,42 +47,86 @@ hape create table <options-and-arguments>
 hape gs havenask
 ```
 
+### Update the index load strategy and online index configuration
+Update the online configuration of a table that already exists, such as real-time build memory or the index load strategy:
+```
+hape update load-strategy <options-and-arguments>
+```
 
-
-### Cluster Resources&Parameter Adjustment
-* The adjustment of cluster resources and parameters is essentially to modify the corresponding hippo.json in the cluster template, and restart the cluster havenask/swift
+## Adjust cluster resources and parameters
+Adjusting cluster resources and parameters means editing the corresponding `hippo.json` in the cluster templates.
+* Before 1.1.0, restart the havenask or swift cluster afterwards:
 ```
 hape restart havenask/swift
 ```
+* From 1.1.0, `hippo.json` can be updated dynamically:
+```
+hape update hippo-config <options-and-arguments>
+```
+Use the `get` command to see the rendered default hippo configuration:
+
+```
+hape get default-hippo-config -r searcher
+hape get default-hippo-config -r qrs
+```
 
 
-### View the cluster status
-* The Hape gs command is called. For more information, see [Hape cluster status](./status.md).
+## Check cluster status
+* Use `hape gs`; see [Hape cluster status](./status.md).
 
 
 
-### Abnormal nodes in a cluster
-* Some nodes may be abnormal after the cluster has been running for a period of time.
-* For common exceptions that can be resolved by restarting, you can use the hape restart container command in the [Hape Command Details](./command.md) to restart a node.
-* Exceptions that cannot be resolved by restarting
-   * Stop the node using the hape stop container command in the [Hape command detail](./command.md)
-   * Remove the IP address from the global.conf file and add a new IP address.
-   * Using the hape update candidate command in the [Hape command details](./command.md), hippo scheduling will assign the processes that should belong to the current machine to the new machine after a period of time.
-* In general, the hapes gs command is used to determine the havenask cluster status READY at the end.
+## Unhealthy nodes
+* After a cluster has been running for a while, some nodes may become unhealthy.
+* For problems a restart can fix, restart the node with `hape restart container` (see [Hape commands](./command.md)).
+* For problems a restart cannot fix:
+    * Stop the node with `hape stop container` (see [Hape commands](./command.md)).
+    * Remove its IP from `global.conf` and add a new IP.
+    * Run `hape update candidate` (see [Hape commands](./command.md)). After a while, hippo schedules the processes that belonged to the old machine onto the new one.
+* Finish by checking with `hape gs` that the havenask cluster is READY.
 
 
-### Modify a word splitter
-* direct write table word segmentation definition
-   * cluster_templates/havenask/direct_table/analyzer.json
-   * cluster_templates/havenask/direct_table/biz_config/analyzer.json
-* Definition of full-scale word divider:
-   * cluster_templates/havenask/offline_table/analyzer.json
-* You can refer to the jieba word splitter that has been implemented in the template. After modifying the corresponding word splitter definition file, call the following command
+
+## SQL warm-up
+* The first queries after the engine starts are slow because the framework has to warm up query processing; later queries are much faster. To avoid this, configure SQL warm-up.
+* Add the following to `cluster_templates/havenask/direct_table/biz_config/sql.json` in the hape templates:
+```
+"iquan_warmup_config": {
+     "thread_number" : 2,  // number of warm-up threads; default 2, a larger value is recommended
+     "warmup_file_path": "warmup_sql.txt" // file of warm-up SQL for your workload, placed next to sql.json
+}
+```
+* `warmup_sql.txt` has the following format; list the queries your workload needs warmed up:
+```
+{
+    "sqls":[
+        "SELECT i1, min(i2) FROM t1 GROUP BY i1"
+    ]
+}
+```
+
+## Metrics
+* To enable monitoring for a havenask cluster, change the following environment variable from `false` to `true` in `hape/hape_conf/default/cluster_templates/havenask/hippo/qrs_hippo.json` and `hape/hape_conf/default/cluster_templates/havenask/hippo/searcher_hippo.json`:
+
+```
+{
+    "key": "--env",
+    "value": "kmonitorEnableLogFileSink=true"
+},
+```
+
+## Change the analyzer
+* Analyzer definitions for direct-write tables:
+    * `cluster_templates/havenask/direct_table/analyzer.json`
+    * `cluster_templates/havenask/direct_table/biz_config/analyzer.json`
+* Analyzer definitions for full tables:
+    * `cluster_templates/havenask/offline_table/analyzer.json`
+* Use the jieba analyzer already defined in the templates as a reference. After editing the analyzer definition files, run:
 ```
 hape update template
 ```
 
-
-### Load custom plug-ins
-* The current version does not support dynamic update plug-ins. Users need to write built-in plug-ins and make their own images.
-
+## High availability
+* See the `count` and `minHealthCapacity` parameters under the havenask process scheduling configuration in [hape-config](./config/hape-config.md).
+* `count` is the number of replicas of each data partition.
+* `minHealthCapacity` is the fraction of replicas that stays available during rolling changes.

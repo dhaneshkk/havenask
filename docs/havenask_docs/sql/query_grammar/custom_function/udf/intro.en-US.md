@@ -16,7 +16,7 @@ Introduction to UDF usage
 
 <a name="ad3GU"></a>
 #### Complex type functions
-| The name of the Function Compute function. | Description | Edition and version |
+| Function | Description | Version |
 | --- | --- | --- |
 | [contain](#contain) | Returns true if a specific value in the specified field is included in the specified value set. The field can be a single-value field or multi-value field. | ALL |
 | [notcontain](#notcontain) | Returns true if a specific value in the specified field is excluded from the specified value set. The field can be a single-value field or multi-value field. | ALL |
@@ -26,6 +26,9 @@ Introduction to UDF usage
 | [rangevalue](#rangevalue) | Converts values in the specified ranges in a field to values of the specified data type. | ALL |
 | [sphere_distance](#sphere_distance) | Calculates a distance value based on the specified longitude and latitude. | ALL |
 | [ha_in](#ha_in) | Returns true if a specific value in the specified field is included in the specified value set. | ALL |
+| [vector_score](#vector_score) | Returns the vector index score. | ALL |
+| [tfidf_score](#tfidf_score) | Calculates the TF-IDF score of a text match. | ALL |
+| [bm25_score](#bm25_score) | Calculates the BM25 score of a text match. | ALL |
 
 
 <a name="CAGWf"></a>
@@ -233,7 +236,7 @@ SELECT nid, price, brand, size FROM phone
 
 - Zone ID
 
-Parameter 2 of QUERY UDFs is parsed by the HA3 query parser. For more information about the HA3 query syntax, see[](./ha3_query_clause.md). When you specify a constant string in parameter 2, you must remove the single quotation marks before and after the HA3 query. For example, QUERY(title, 'Huawei mobile phone OPPO mobile') is equivalent to HA3 query=Huawei mobile phone OPPO mobile phone. If you use a logical operator in the query clause, you can enclose each constant in single quotation marks ('). For example, the query='Huawei Mobile Phone' AND 'OPPO Mobile Phone' clause in a statement is equivalent to the WHERE QUERY (('title', 'Huawei Mobile Phone' AND 'OPPO Mobile Phone') condition in a QUERY function.
+Parameter 2 of QUERY UDFs is parsed by the HA3 query parser. For more information about the HA3 query syntax, see [HA3 query clauses](./ha3_query_clause.md). When you specify a constant string in parameter 2, you must remove the single quotation marks before and after the HA3 query. For example, QUERY(title, 'Huawei mobile phone OPPO mobile') is equivalent to HA3 query=Huawei mobile phone OPPO mobile phone. If you use a logical operator in the query clause, you can enclose each constant in single quotation marks ('). For example, the query='Huawei Mobile Phone' AND 'OPPO Mobile Phone' clause in a statement is equivalent to the WHERE QUERY (('title', 'Huawei Mobile Phone' AND 'OPPO Mobile Phone') condition in a QUERY function.
 
 - Common error
    | Error type | Error form | Correct form |
@@ -336,7 +339,7 @@ boolean ha_in(ARRAY<string> v, const string desc, [const string sep])
 
 - Descriptions
 
-You can use this function in a similar manner as the contain function. You can use this function to determine whether a value in a field is included in a specified value set. You can use this function to query data from a summary table, a key-value table, or a Pkey-Skey-value table. For more information, see [Query data from a summary table](./Summary query. md) and [Query data from a key-value table or a Pkey-Skey-value table](./KV, KVV query. md).
+You can use this function in a similar manner as the contain function. You can use this function to determine whether a value in a field is included in a specified value set. You can use this function to query data from a summary table, a key-value table, or a Pkey-Skey-value table. For more information, see [Query data from a summary table](../../sql_grammar/from/summary-query.md) and [Query data from a key-value table or a Pkey-Skey-value table](../../sql_grammar/from/kv-kkv-query.md).
 
 - Options
 
@@ -362,20 +365,115 @@ USE_TIME: 32.141ms, ROW_COUNT: 2
 ```
 
 
+#### vector_score
+
+- Prototype
+```
+double vector_score(const string index_name)
+double vector_score(const string index_name, double default_score)
+```
+
+- Description
+
+Use together with a vector `MATCHINDEX` to get the score of the vector index match.
+
+
+- Parameters
+
+`index_name`: name of the vector index.
+
+`default_score`: returned when the vector index score is not available.
+
+- Return value
+
+For inner-product vector queries, the inner product of the two vectors: a higher score means more similar. For Euclidean-distance vector queries, the squared Euclidean distance between the two vectors: a lower score means more similar.
+
+- Example
+
+Using `vector_score`. The index must be a vector index.
+```sql
+SELECT vector_score('vector_score') FROM phone where MATCHINDEX('vector_score', '0.57350874,0.20913178&&n=10')
+
+SELECT vector_score('vector_score', 1000.0) FROM phone where MATCHINDEX('vector_score', '0.57350874,0.20913178&&n=10')
+```
+
+#### tfidf_score
+
+- Prototype
+```
+float tfidf_score()
+float tfidf_score(const string index_name)
+```
+
+- Description
+
+Use together with `MATCHINDEX` to get the text match score.
+
+
+- Parameters
+
+`index_name`: the text index to include in the score. If omitted, every matched index contributes to the score.
+
+- Return value
+
+The TF-IDF score of the text match.
+
+- Example
+
+Using `tfidf_score`:
+```sql
+SELECT tfidf_score() FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
+
+SELECT tfidf_score('default1') FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
+```
+
+
+#### bm25_score
+
+- Prototype
+```
+float bm25_score()
+float bm25_score(const string index_name)
+```
+
+- Description
+
+Use together with `MATCHINDEX` to get the text match score. Note that in the current implementation the text statistics used by BM25 are not global; they are computed per partition.
+
+
+- Parameters
+
+`index_name`: the text index to include in the score. If omitted, every matched index contributes to the score.
+
+- Return value
+
+The BM25 score of the text match.
+
+- Example
+
+Using `bm25_score`:
+```sql
+SELECT bm25_score() FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
+
+SELECT bm25_score('default1') FROM phone where MATCHINDEX('default1', '阿里') AND MATCHINDEX('default2', '阿里')
+```
+
+
+
 ## Appendix:
 
-Parameters for MATCHINDEX and QUERY
+Parameters used by `MATCHINDEX`, `QUERY` and similar functions:
 
-* global_analyzer
+* `global_analyzer`
 
-   * Specifies a global analyzer. The analyzer that is specified by this parameter has a higher priority than the analyzer that you specified in the schema. The specified analyzer must be included in the analyzer.json file.
+   * Sets a global analyzer for the query. It overrides the analyzer in the schema, and it must be configured in `analyzer.json`.
 
-   - specific_index_analyzer: The specified index in the query uses another tokenizer. This tokenizer overwrites the tokenizer of the global_analyzer and schema.
+   - `specific_index_analyzer`: uses a different analyzer for a specific index in the query. It overrides both `global_analyzer` and the schema's analyzer.
 
-   - no_token_indexes: The specified indexes in the query are not tokenised. The processes other than tokenisation, such as normalization and stopword removal, are executed normally. <br />``
+   - `no_token_indexes`: indexes in the query whose terms are not tokenized. Other processing, such as normalization and stop-word removal, still runs. Separate multiple indexes with `;`.
 
-   - tokenize_query: `true` or `false` indicates whether the query needs to be tokenized. `QUERY` the UDF has a tokenizer, this parameter does not take effect<br />. Default `true`
+   - `tokenize_query`: `true` or `false`; whether to tokenize the query. Has no effect in the `QUERY` UDF, which has its own tokenizer. Defaults to `true`.
 
-   - remove_stopwords: `true` or `false` indicates whether to delete stop words. The default `true` of stop words is configured <br />in the tokenizer.
+   - `remove_stopwords`: `true` or `false`; whether to remove stop words. Stop words are configured in the analyzer. Defaults to `true`.
 
-   - default_op: specifies the join operator after the default query word segmentation used in the query, `AND` or `OR`. The default value is AND.
+   - `default_op`: the operator that joins the tokens of the query after tokenization, `AND` or `OR`. Defaults to `AND`.

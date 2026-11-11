@@ -3,15 +3,15 @@ toc: content
 order: 1
 ---
 
-# hape command
+# Hape commands
 
-* Run the following command to get help for hape
+* Run the following command for help with hape:
 
 ```
 hape -h
 ```
 
-* Subcommands can also get help, such as
+* Subcommands have their own help, for example:
 
 ```
 hape start -h
@@ -19,159 +19,159 @@ hape start -h
 hape start havenask -h
 ```
 
-## Command
+## Subcommands
 
 ### start
-* Function: pulls a cluster
-* Parameter description:
-   * If you pass in the havenask parameter, the havenask cluster is pulled up.
-   * Passing in swift means pulling up the swift cluster
-* Valid values:
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. This indicates that the debug level log is enabled.
-* Descriptions
-   * When the parameter is set to havenask
-      * If the swift cluster does not exist, hape will automatically pull up according to the configuration.
-      * If domainZkRoot of global.conf is not specified in the specified cluster configuration, HAPE will automatically pull up the default test zookeeper.
+* Purpose: start a cluster
+* Arguments:
+    * `havenask` starts the havenask cluster
+    * `swift` starts the swift cluster
+* Options:
+    * `-c <config>` optional. The hape configuration to use. Defaults to `/ha3_install/hape_conf/default`.
+    * `-v` optional. Enables hape debug-level logging.
+* Notes
+    * When the argument is `havenask`:
+        * If the swift cluster does not exist, hape starts it automatically from the configuration.
+        * If `domainZkRoot` is not set in `global.conf` of the chosen cluster configuration, hape automatically starts the default test ZooKeeper.
 ```
-### Pull up the Swift cluster
+## Start the swift cluster
 hape start swift
 
-### Pull up the havenask cluster
+## Start the havenask cluster
 hape start havenask
 
 ```
 
 
 ### stop
-* Function: stops the cluster and does not clear the zookeeper information of the cluster.
-* Parameter description:
-   * havenask/swift/container indicates that the havenask cluster /swift cluster /a container is stopped.
-* Valid values:
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. The value indicates that the debug-level log is enabled.
-* Special options:
-   * When the parameter is container (this information can be obtained from the gs subcommand)
-      * -i \<ip\> ip address
-      * -n \<name\> the name of the container to be stopped on the corresponding ip machine
+* Purpose: stop a cluster without clearing its ZooKeeper information
+* Arguments:
+    * `havenask`/`swift`/`container` stops the havenask cluster, the swift cluster, or a single container
+* Options:
+    * `-c <config>` optional. The hape configuration to use. Defaults to `/ha3_install/hape_conf/default`.
+    * `-v` optional. Enables hape debug-level logging.
+* Additional options:
+    * When the argument is `container` (get these values from the `gs` subcommand):
+        * `-i <ip>` IP address
+        * `-n <name>` name of the container to stop on that machine
 ```
-### Stop the swift cluster
+## Stop the swift cluster
 hape stop swift
 
-### Stop the havenask cluster
+## Stop the havenask cluster
 hape stop havenask
 
-### Stop a container on a machine
+## Stop one container on a machine
 hape stop container -i <ip> -n <container-name>
 
 ```
 
 
 ### restart
-* Function: restarts a cluster
-* Parameter description:
-   * havenask/swift/container indicates that the havenask cluster /swift cluster /a container is stopped.
-   * container indicates to restart a container. For more information, see [Hape O&M](./scene.md).
-* Valid values:
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. This indicates that the debug level log is enabled.
-* Special options:
-   * The following options are available when the parameter is container
-      * -i \<ip\> Required. The IP address of the machine.
-      * -n \<name\> Required. The name of the container.
+* Purpose: restart a cluster
+* Arguments:
+    * `havenask`/`swift`/`container` restarts the havenask cluster, the swift cluster, or a single container
+    * `container` restarts one container; see [Common Hape operations](./scene.md) for usage
+* Options:
+    * `-c <config>` optional. The hape configuration to use. Defaults to `/ha3_install/hape_conf/default`.
+    * `-v` optional. Enables hape debug-level logging.
+* Additional options:
+    * When the argument is `container`:
+        * `-i <ip>` required. Machine IP.
+        * `-n <name>` required. Container name.
 ```
-### Restart the Swift cluster
+## Restart the swift cluster
 hape restart swift
 
-### Restart the havenask cluster
+## Restart the havenask cluster
 hape restart havenask
 
-### Restart a container on a machine
+## Restart one container on a machine
 hape restart container -i <ip> -n <container-name>
 ```
 
 ### delete
-* Function: deletes a cluster or table and clears the zookeeper information of the cluster
-* Parameter description:
-   * havenask/swift/table/all indicates deleting a specific type of target
-* Valid values:
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. This indicates that the debug level log is enabled.
-* The following options are available when the parameter is table
-   * -t \<table\> Required. This indicates that a specific table is deleted.
-   * -- The keeptopic is optional. This parameter specifies whether to retain the swift topic when the table is deleted.
+* Purpose: delete a cluster or table and clear its ZooKeeper information
+* Arguments:
+    * `havenask`/`swift`/`table`/`all` selects what to delete
+* Options:
+    * `-c <config>` optional. The hape configuration to use. Defaults to `/ha3_install/hape_conf/default`.
+    * `-v` optional. Enables hape debug-level logging.
+* When the argument is `table`:
+    * `-t <table>` required. The table to delete.
+    * `--keeptopic` optional. Keep the table's swift topic when deleting it.
 
 ```
-### Delete a Swift cluster
+## Delete the swift cluster
 hape delete swift
 
-### Delete the havenask cluster
+## Delete the havenask cluster
 hape delete havenask
 
-### Delete the havenask table
+## Delete a havenask table
 hape delete table -t <table>
 
-### Delete havenask, tables, and swift at a time
+## Delete havenask, its tables and swift in one go
 hape delete all
 
 ```
 
 ### create
-* Function: creates a table
-* Parameter description:
-   * table indicates that a table is created.
-* Valid values:
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. The value indicates that the debug-level log is enabled.
-   * -t \<table\> Required. The name of the table.
-   * -p \<partition-count\> Required. This parameter indicates the number of shards. The value must be 1 for a single server. In multi-machine mode, the number of shards must not exceed the number of searcher machines that can be used for scheduling. Otherwise, port conflicts may occur. In addition, in multi-machine mode, suppose there are N tables, of which the maximum shard is M, then the shard requirement of all tables must be either 1 or M
-   * -s \<schema\> Required. This parameter indicates the schema path.
-   * -f \<file\> is optional. It indicates the full file path. Files or directories are supported. If you specify this parameter, a full table is created. If you do not specify this parameter, a write-through table is created. You must specify the hdfs path in multi-machine mode
-* Additional information:
-   * A swift topic is automatically created when you create a table. You can also use swift tools to create a topic with the same name as the table in advance.
+* Purpose: create a table
+* Arguments:
+    * `table` creates a table
+* Options:
+    * `-c <config>` optional. The hape configuration to use. Defaults to `/ha3_install/hape_conf/default`.
+    * `-v` optional. Enables hape debug-level logging.
+    * `-t <table>` required. Table name.
+    * `-p <partition-count>` required. Number of partitions; must be 1 on a single machine. In multi-machine mode, do not use more partitions than there are searcher machines available for scheduling, or ports will conflict. Also in multi-machine mode, if there are N tables and the largest has M partitions, every table must have either 1 or M partitions.
+    * `-s <schema>` required. Path to the schema.
+    * `-f <file>` optional. Path to the full data, as a file or a directory. If given, a full table is created; otherwise a direct-write table is created. In multi-machine mode this must be an HDFS path.
+* Notes:
+    * A swift topic is created automatically with the table. You can also create a topic with the same name as the table in advance using the swift tools; table creation then reuses it.
 ```
-#### Write-through tables
+## Direct-write table
 hape create table -t in0 -p 1 -s /ha3_install/example/cases/normal/in0_schema.json
 
-#### Full scale
+## Full table
 hape create table -t in1 -p 1 -s /ha3_install/example/cases/normal/in0_schema.json  -f /ha3_install/example/cases/normal/test.data
 
 ```
 
 ### gs
-* Function: obtains the status. For more information, see [Hape cluster status](./status.md).
+* Purpose: get status; see [Hape cluster status](./status.md) for what it means
+* Arguments
+    * `swift`/`table`/`havenask`/`bs` gets the status of swift, tables, havenask or the build service
 * Options
-   * swift/table/havenask/bs Get the status of swift/table/havenask/bs
-* Parameter
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. The value indicates that the debug-level log is enabled.
+    * `-c <config>` optional. The hape configuration to use. Defaults to `/ha3_install/hape_conf/default`.
+    * `-v` optional. Enables hape debug-level logging.
 
-* Special Options
-   * The following options are available when the parameter is table
-      * -t \<table-name\> Optional. This parameter is used to view only the status of a table.
+* Additional options
+    * When the argument is `table`:
+        * `-t <table-name>` optional. Show only that table's status.
 
 ```
-#### Get the swift status
+## swift status
 hape gs swift
 
-#### Obtain the status of the havenask cluster.
+## havenask cluster status
 hape gs havenask
 
-#### Obtain the table status
+## Table status
 hape gs table
 hape gs table -t in0
 
-#### Get the BS status
+## Build service status
 hape gs bs
 
 ```
 
 
 ### validate
-* Function: performs basic checks on clusters, such as connectivity and whether container scheduling can be completed.
-* Parameter
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. The value indicates that the debug-level log is enabled.
+* Purpose: basic checks on the cluster, such as connectivity and whether containers can be scheduled
+* Options
+    * `-c <config>` optional. The hape configuration to use. Defaults to `/ha3_install/hape_conf/default`.
+    * `-v` optional. Enables hape debug-level logging.
 
 ```
 hape validate
@@ -179,19 +179,75 @@ hape validate
 
 
 ### update
-* Function: Updates some Hape configurations. For more information, see [Hape O&M scenarios](./scene.md).
-* Parameter description:
-   * candidate updates the list of IP addresses that can be used for scheduling in the cluster based on global.conf.
-   * template Restart the havenask admin to load the latest template
+* Purpose: update parts of the hape configuration; see [Common Hape operations](./scene.md) for details
+* Arguments:
+    * `candidate` updates the list of IPs available for scheduling, from `global.conf`
+    * `template` restarts the havenask admin so it loads the latest templates
+    * `hippo-config` updates cluster startup parameters, binaries and so on
+    * `load-strategy` updates the index load strategy and online index configuration
+    * `table-schema` updates a table's schema, then runs a full build and switches over automatically
 
-* Parameter
-   * -c \<config\> is optional, indicating that the hape configuration is specified. If this parameter is not specified, the configuration is /ha3_install/hape_conf/default by default.
-   * -v Optional. The value indicates that the debug-level log is enabled.
-
+#### Update the machines available for scheduling
 ```
-### Update the IP address list of machines that can be used for scheduling
+## Update the list of machine IPs available for scheduling
 hape update candidate
-### Restart havenask admin to load the latest template
+```
+
+
+#### Update table templates
+```
+## Restart the havenask admin to load the latest templates
 hape update template
 ```
 
+#### Update the schema of a full table
+```
+hape update table-schema -t {table_name} -p {part} -s {schema} -f {data}
+```
+- `{table_name}`: table whose schema is updated
+- `{part}`: number of partitions of the full table
+- `{schema}`: path to the new schema file
+- `{data}`: full table data
+
+Example:
+```
+hape update table-schema -t in0 -p 1 -s /path/to/schema -f /path/to/data
+```
+
+#### Update the load strategy
+```
+hape update load-strategy -t {table_name} -s '{online_index_config}'
+```
+- `{table_name}`: table whose load strategy is updated
+- `{online_index_config}`: a JSON string in the format of `online_index_config` in the [cluster configuration](./config/clusterconfig.md)
+
+Example:
+```
+hape update load-strategy -t in0 -s '{"build_config": {"build_total_memory": 3456}, "load_config": [{"load_strategy_param": {"lock": true}, "load_strategy": "mmap", "name": "all_lock_value", "file_patterns": [".*"]}], "max_realtime_memory_use": 6543}'
+```
+
+#### Update binaries, startup parameters and more
+```
+hape update hippo-config -p {hippo_config_file_path} -r {role_type}
+```
+- `{hippo_config_file_path}`: the hippo config file to apply. It describes the process: binary (currently the image), startup parameters, `minHealthCapacity` and so on.
+- `{role_type}`: role to update: `searcher` or `qrs`
+
+Example:
+```
+hape update hippo-config -p /path/to/hippo_config -r searcher
+```
+
+
+### get
+* Purpose: get configuration content (currently only the default hippo configuration of searcher or QRS)
+* Arguments
+    * `default-hippo-config`
+
+```
+## Default hippo configuration for QRS
+hape get default-hippo-config -r qrs
+
+## Default hippo configuration for searchers
+hape get default-hippo-config -r searcher
+```

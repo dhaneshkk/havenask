@@ -2,24 +2,24 @@
 toc: content
 order: 0
 ---
-# Hape configuration introduction
+# Hape configuration
 
-## Introduction
-* The configuration of Hape is located in hape_conf, and hape_conf/default is used when not specified by the user
+## Overview
+* Hape's configuration lives in `hape_conf`. If you do not specify one, `hape_conf/default` is used.
 <Tree>
   <ul> 
     <li>default
       <ul>
         <ul>
-        <li>global.conf (Hape全局配置)</li> 
+        <li>global.conf (global Hape configuration)</li> 
         <li>cluster_templates
             <ul>
-            <li>havenask (havenask引擎进程配置)
+            <li>havenask (havenask engine process configuration)
                 <ul>
                     <li>...</li>
                 </ul>
             </li>
-            <li>swift (havenask消息队列进程配置)
+            <li>swift (havenask message queue process configuration)
                 <ul><li>...</li></ul>
             </li>
             </ul>
@@ -29,91 +29,99 @@ order: 0
     </ul>
   </ul>
 </Tree>
-* Used to create customized hape configuration under hape_conf to manage multiple clusters. The format must be the same as that of hape_conf/default
+
+* You can create your own Hape configurations under `hape_conf` to manage multiple clusters. They must use the same layout as `hape_conf/default`.
 
 ## Variable rendering
-* Due to the large amount of dynamically generated content in the havenask configuration, the hape configuration supports default variable rendering
-* Variable format is ${xxx}, default variables include the following:
-* user: indicates the user name
-* userHome: indicates the user home directory
-* hapeRoot: indicates the hape root directory
-* localHost: indicates the local ip address
-* defaultImage: default image
-* All global.conf variables will be used for rendering. For example, ${common.binaryPath} represents the binaryPath variable in the globa section of glob.conf
+* Much of the havenask configuration is generated dynamically, so Hape configuration files support variable rendering.
+* Variables use the form `${xxx}`. The built-in variables are:
+    * `user`: user name
+    * `userHome`: user's home directory
+    * `hapeRoot`: hape root directory
+    * `localHost`: IP address of the local machine
+    * `defaultImage`: default image
+    * Every variable in `global.conf` is also available. For example, `${common.binaryPath}` renders the `binaryPath` variable from the `common` section of `global.conf`.
 
-conf Indicates the global configuration
+## global.conf (global configuration)
 ### global.conf.common
-* Function: global parameter
-* Parameter Description
-* domainZkRoot: indicates the root zk path of an equipment room. domainZkRoot/serviceName will be the root zk path of a cluster. hape helps pull up the test zookeeper path when domainZkRoot is not specified
-* binaryPath: Where does the container process find the havenask binary package, usually by default /ha3_install
-* dataStoreRoot: indicates the address of the index, configuration, and meta-information files generated during the running of the havenask cluster. Support for relative paths relative to hapeRoot. In multi-server mode, the directory must be hdfs
-* hadoopHome: indicates the hadoop path. The address must be /home/\&lt. user\&gt; (Soft links can be set up), and the corresponding hadoop must be available on all machines. The default value /usr/local/hadoop/hadoop points to the default path in the container
-* javaHome: indicates the java path, the address must be in /home/\&lt; user\&gt; (you can set soft links), and must have the corresponding java on all machines. javaHome must match hadoopHome. The default value /opt/taobao/java points to the default path in the container
+* Purpose: global parameters
+* Parameters
+    * `domainZkRoot`: root ZooKeeper path for one data center. `domainZkRoot/serviceName` becomes the root ZooKeeper path of each kind of cluster. If `domainZkRoot` is not set, Hape starts a test ZooKeeper for you.
+    * `binaryPath`: where container processes find the havenask binary package; usually `/ha3_install`.
+    * `dataStoreRoot`: location of the indexes, configuration and metadata files the havenask cluster produces while running. Relative paths are relative to `hapeRoot`. In multi-machine mode this must be an HDFS path.
+    * `hadoopHome`: Hadoop path. It must be under `/home/<user>` (a symbolic link is fine), and Hadoop must exist at that path on every machine. Defaults to `/usr/local/hadoop/hadoop`, the default path inside the container.
+    * `javaHome`: Java path. It must be under `/home/<user>` (a symbolic link is fine), Java must exist at that path on every machine, and it must match `hadoopHome`. Defaults to `/opt/taobao/java`, the default path inside the container.
+    * `processorMode`: by default, single-machine mode starts a cluster of multiple containers on one machine. Set this to `proc` to start a single container running multiple processes instead, which is more convenient for debugging and development.
 
 
 ### global.conf.swift
-* Function: swift cluster parameter
-* Parameter Description
-* swiftZkRoot: indicates the swift zk path. When not specified, hape helps pull up the test swift
-* serviceName: indicates the swift service name
-* image: image address
-* adminCpu: admin cpu usage, divided by 100 is the number of cores
-* adminMem: admin Memory usage, unit MB
-* adminIpList: admin machine ip, separated by semicolons. Local ip is used when not specified. Multiple admins elect a leader
-* workerIpList: worker machine ip list, separated by semicolons. Local ip is used when not specified
+* Purpose: swift cluster parameters
+* Parameters
+    * `swiftZkRoot`: swift ZooKeeper path. If not set, Hape starts a test swift for you.
+    * `serviceName`: swift service name
+    * `image`: image address
+    * `adminCpu`: admin CPU quota; divide by 100 for the number of cores
+    * `adminMem`: admin memory, in MB
+    * `adminIpList`: admin machine IPs, separated by semicolons. Defaults to the local IP. Multiple admins elect a leader.
+    * `workerIpList`: worker machine IPs, separated by semicolons. Defaults to the local IP.
+    * `extraArgs`: extra startup arguments for the admin, separated by semicolons
+    * `extraEnvs`: extra environment variables for the admin, separated by semicolons
 
 ### global.conf.havenask
-* Function: Online cluster parameter
-* Parameter Description
-* serviceName: indicates the name of the havenask service
-* image: image address
-* adminCpu: admin cpu usage, divided by 100 is the number of cores
-* adminMem: admin Memory usage, unit MB
-* adminIpList: admin machine ip address. Local ip is used when not specified
-* qrsIpList: qrs machine ip list, separated by semicolons. Local ip is used when not specified. Multiple admins elect a leader
-* searcherIpList: searcher machine ip list, separated by semicolons. Local ip is used when not specified
-* adminHttpPort: havenask admin http service port. If this parameter is not specified, the value is 45800
+* Purpose: online cluster parameters
+* Parameters
+    * `serviceName`: havenask service name
+    * `image`: image address
+    * `adminCpu`: admin CPU quota; divide by 100 for the number of cores
+    * `adminMem`: admin memory, in MB
+    * `adminIpList`: admin machine IP. Defaults to the local IP.
+    * `qrsIpList`: QRS machine IPs, separated by semicolons. Defaults to the local IP. Multiple admins elect a leader.
+    * `searcherIpList`: searcher machine IPs, separated by semicolons. Defaults to the local IP.
+    * `adminHttpPort`: HTTP port of the havenask admin. Defaults to 45800.
+    * `extraArgs`: extra startup arguments for the admin, separated by semicolons
+    * `extraEnvs`: extra environment variables for the admin, separated by semicolons
 
 ### global.conf.bs
-* Function: The full scale builds cluster parameters
-* Parameter Description
-* serviceName: buildservice service name
-* image: image address
-* adminCpu: admin cpu usage, divided by 100 is the number of cores
-* adminMem: admin Memory usage, unit MB
-* adminIpList: admin machine ip, separated by semicolons. Local ip is used when not specified. Multiple admins elect a leader
-* workerIpList: worker machine ip list, separated by semicolons. Local ip is used when not specified
+* Purpose: parameters for the cluster that builds full tables
+* Parameters
+    * `serviceName`: build service name
+    * `image`: image address
+    * `adminCpu`: admin CPU quota; divide by 100 for the number of cores
+    * `adminMem`: admin memory, in MB
+    * `adminIpList`: admin machine IPs, separated by semicolons. Defaults to the local IP. Multiple admins elect a leader.
+    * `workerIpList`: worker machine IPs, separated by semicolons. Defaults to the local IP.
+    * `extraArgs`: extra startup arguments for the admin, separated by semicolons
+    * `extraEnvs`: extra environment variables for the admin, separated by semicolons
 
 
 
-## havenask Process scheduling configuration
-* hippo/qrs_hippo.json
-* Function: Pull up the process template of havenask qrs.
-* Parameter Description
-* count: indicates the number of service lines
-* minHealthCapacity: Minimum availability. admin will ensure that the minHealthCapacity/100*count channel service is available
-* resources: process container resources
-* args: boot parameter
-* envs: environment variable
-* hippo/searcher_hippo.json
-* Action: Pull up the process template for havenask searcher.
-* Parameter Description
-* count: indicates the number of service lines
-* minHealthCapacity: Minimum availability. admin will ensure that the minHealthCapacity/100*count channel service is available
-* resources: process container resources
-* args: boot parameter
-* envs: environment variable
+## havenask process scheduling configuration
+* `hippo/qrs_hippo.json`
+    * Purpose: process template used to start havenask QRS.
+    * Parameters
+        * `count`: number of replicas
+        * `minHealthCapacity`: minimum availability. The admin keeps at least `minHealthCapacity/100 * count` replicas available.
+        * `resources`: container resources for the process
+        * `args`: startup arguments
+        * `envs`: environment variables
+* `hippo/searcher_hippo.json`
+    * Purpose: process template used to start havenask searchers.
+    * Parameters
+        * `count`: number of replicas
+        * `minHealthCapacity`: minimum availability. The admin keeps at least `minHealthCapacity/100 * count` replicas available.
+        * `resources`: container resources for the process
+        * `args`: startup arguments
+        * `envs`: environment variables
 
 ## swift process scheduling configuration
-* config/swift_hippo.json
-* Role: Pull up swift broker's process template.
-* Parameter Description
-* count: indicates the number of service lines
-* role_resource: process container resource
-* args: boot parameter
-* envs: environment variable
-* swift.conf
-* Function: swift cluster parameter
-* Parameter Description:
-* data_root_path Path for storing swift data
+* `config/swift_hippo.json`
+    * Purpose: process template used to start swift brokers.
+    * Parameters
+        * `count`: number of replicas
+        * `role_resource`: container resources for the process
+        * `args`: startup arguments
+        * `envs`: environment variables
+* `swift.conf`
+     * Purpose: swift cluster parameters
+     * Parameters:
+       * `data_root_path`: path where swift data is stored

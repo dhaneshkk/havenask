@@ -2,96 +2,166 @@
 toc: content
 order: 2
 ---
-# schema Configuration
+# Schema configuration
 ## Structure
 
-A complete schema.json file typically includes table_name, dictionaries, fields, indexs, attributes, summarys, and source.
-An example of schema.json:
+A complete `schema.json` file usually contains `columns` and `indexes`.
+An example `schema.json`:
 ```
 {
-    "table_name": "sample",                                    (1)
-    "fields":                                                  (2)
-    [
-        {"field_name":"title",        "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
-        {"field_name":"user_name",    "field_type":"STRING" },
-        {"field_name":"user_id",      "field_type":"INTEGER"},
-        {"field_name":"price",        "field_type":"INTEGER" },
-        {"field_name":"category",     "field_type":"INTEGER",  "multi_value":true },
-        {"field_name":"product_id",   "field_type":"LONG" },
-        {"field_name":"body",         "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
-        {"field_name":"b2b_body",     "field_type":"TEXT",    "analyzer":"b2b_analyzer"},
-        {"field_name":"taobao_body1",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
-        {"field_name":"taobao_body2",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"}
-    ].
-    "indexs":                                                  (3)
-    [
+    "columns": [                                        (1)
         {
-            "index_name": "pack_index",
-            "index_type" : "PACK",
-            "term_payload_flag" : 1,
-            "doc_payload_flag" : 1,
-            "position_payload_flag" : 1,
-            "position_list_flag" : 1,
-            "high_frequency_dictionary" : "top10",
-            "high_frequency_term_posting_type" : "both",
-            "index_fields":
-            [
-            {"field_name":"title", "boost":1000},
-            {"field_name":"body", "boost":10}
-            ]
+            "name": "title",
+            "type": "TEXT",
+            "analyzer": "simple_analyzer"
         },
         {
-            "index_name": "text_index",
-            "index_type": "TEXT",
-            "term_payload_flag" :  1 ,
-            "doc_payload_flag" :  1 ,
-            "position_payload_flag" : 1,
-            "position_list_flag" : 1,
-            "index_fields": "title"
+            "name": "subject",
+            "type": "TEXT",
+            "analyzer": "simple_analyzer"
         },
         {
-            "index_name": "string_index",
-            "index_type": "STRING",
-            "index_fields": "user_name",
-            "term_payload_flag" :  1 ,
-            "doc_payload_flag" :  1
+            "name": "id",
+            "type": "UINT32"
         },
         {
-            "index_name": "primary_key_index",
-            "index_type" : "PRIMARYKEY64",
-            "index_fields": "product_id",
-            "has_primary_key_attribute": true
+            "name": "hits",
+            "type": "UINT32"
         },
-    ].
-    "attributes": [ "id", "company_id", "cat_id" ],                               (4)
-    "summarys":{                                                                  (5)
-        "summary_fields": ["id", "company_id", "subject", "cat_id"],
-        "compress":false
-    },
-    "src":{                                                                       (6)
-        "group_configs": {"field_mode":"all_field"}
-    },
-    "enable_ttl" : true,                                                          (7)
+        {
+            "name": "createtime",
+            "type": "UINT64"
+        }
+    ],
+    "indexes": [                                       (2)
+        {
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "PRIMARY_KEY64"               (3)
+        },
+        {
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"                   (4)
+        },
+        {
+            "name": "hits",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "hits"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "createtime",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "createtime"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "title",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "title"
+                    }
+                ]
+            },
+            "index_type": "TEXT"
+        },
+        {
+            "name": "subject",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "subject"
+                    }
+                ]
+            },
+            "index_type": "TEXT"                        (5)
+        },
+        {
+            "name": "default",
+            "index_type": "PACK",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "title",
+                        "boost": 100
+                    },
+                    {
+                        "field_name": "subject",
+                        "boost": 200
+                    }
+                ]
+            }
+        },
+        {
+            "name": "summary",
+            "index_type": "SUMMARY",                     (6)
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "title"
+                    },
+
+                    {
+                        "field_name": "subject"
+                    },
+                    {
+                        "field_name": "id"
+                    },
+                    {
+                        "field_name": "hits"
+                    },
+                    {
+                        "field_name": "createtime"
+                    }
+                ]
+            }
+        }
+    ]
 }
+    
+
 ```
 
-The above paragraphs are explained as follows:
+The numbered parts above are:
 
-&lt; 1&gt;  table name, table_name in cluster.json is the table_name specified here;
+<1> `columns`: the table's fields.
 
-&lt; 2&gt;  fields Indicates the fields of data.
+<2> `indexes`: the index configuration.
 
-&lt; 3&gt;  indexs, inverted index configuration;
+<3> `PRIMARY_KEY64`: the table's primary key.
 
-&lt; 4&gt;  attributes, which specifies the fields to be used for the positive list;
+<4> `ATTRIBUTE`: the fields stored as attributes.
 
-&lt; 5&gt;  summarys, which specifies the summary fields.
+<5> `TEXT`: the fields of a text inverted index.
 
-&lt; 6&gt;  source, specify the fields and modules of the source.
-
-&lt; 7&gt;  enable_ttl: Specifies whether to enable the function of automatically deleting documents after expiration. If yes, doc_time_to_live_in_seconds is automatically added to the attribute list. The field is of type uint32.
+<6> `SUMMARY`: the fields stored in the summary.
 
 
-## Other
-- schema For the supported field types, see [Engine Built-in Field Type](.. /.. /indexes/field-type)
-- Index type For details, see [Index Introduction](.. /.. /indexes/intro.md)
+
+## More
+- For the field types a schema supports, see [Built-in field types](../../indexes/field-type.md).
+- For details on index types, see [Introduction to indexes](../../indexes/intro.md).

@@ -7,7 +7,7 @@ order: 6
 
 # summary index
 
-A summary index can store information that corresponds to a document. OpenSearch Vector Search Edition can use the document ID to obtain the location in which the information is stored. This way, OpenSearch Vector Search Edition can provide you with the storage location of the information. The schema of a summary index is similar to the schema of a forward index. The features of the indexes are different.
+A summary index can store information that corresponds to a document. Havenask can use the document ID to obtain the location in which the information is stored. This way, havenask can provide you with the storage location of the information. The schema of a summary index is similar to the schema of a forward index. The features of the indexes are different.
 
 ### Configuration example
 The name, index_type, and index_fields parameters are required. The other parameters are optional.

@@ -5,7 +5,7 @@ order: 30320
 
 # Hint
 ## Description
-For more information about the definition of hints, see[](https://en.wikipedia.org/wiki/Hint_(SQL)). OpenSearch Vector Search Edition allows you to use hints in SQL statements to ensure that you can define SQL queries in a more effective manner based on your business requirements.
+For the general definition of hints, see [Hint (SQL)](https://en.wikipedia.org/wiki/Hint_(SQL)). Havenask allows you to use hints in SQL statements to ensure that you can define SQL queries in a more effective manner based on your business requirements.
 
 ## Syntax
 ```
@@ -150,7 +150,7 @@ In tj_relation.item_id = 900 AND tj_relation.pk = 100, the pk and item_id fields
 ```
 
 ## Built-in ATTR hints
-You can use ATTR hints to pass specific auxiliary information to operators to accelerate queries. In an ATTR hint, you can specify the maximum number of data entries that you want the system to return, the number of data entries in each batch, and other information. If you query data from multiple fields, you can use ATTR hints to accelerate queries. OpenSearch Vector Search Edition supports three types of attribute hints.
+You can use ATTR hints to pass specific auxiliary information to operators to accelerate queries. In an ATTR hint, you can specify the maximum number of data entries that you want the system to return, the number of data entries in each batch, and other information. If you query data from multiple fields, you can use ATTR hints to accelerate queries. Havenask supports three types of attribute hints.
 ### SCAN_ATTR
 You can use a SCAN_ATTR hint to pass information to the scan operator. You can include the following parameters in the SCAN_ATTR hint:
 * localLimit: specifies the maximum number of data entries that the scan operator can return.

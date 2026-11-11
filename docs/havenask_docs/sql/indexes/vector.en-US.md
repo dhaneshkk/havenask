@@ -9,7 +9,7 @@ order: 7
 Vector retrieval refers to the expression of images or content in the form of vectors and the creation of a vector index library. You can enter one or more vectors during queries to return the top K approximate results based on the vector distance.   
 Heaven Ask Engine is deeply integrated with the [proxima](https://github.com/alibaba/proxima) core library, so that the Heaven Ask Engine has the ability of vector retrieval. Heaven Ask Engine supports multiple mainstream vector index types, such as graph indexes and cluster indexes, and features high performance and low cost. Taking hnsw index as an example, on the sift 1M and deep 10M public test sets, using 16core 64 GB machines, the vector index of the sky-asking engine can reach thousands of qps and the latency within 10ms. At the same time, the vector index of Heaven Ask Engine can be loaded in non-full memory mode, which can greatly reduce the overhead of machine memory, increase the scale of stand-alone index, and reduce machine costs.
 
-For more information about examples of vector retrieval, see [Vector examples](https://github.com/alibaba/havenask/tree/main/example/cases/vector).
+For more information about examples of vector retrieval, see [Vector examples](https://github.com/alibaba/havenask/tree/main/aios/tools/hape/example/cases/vector).
 
 ## Configure a vector index without categories
 ```
@@ -103,7 +103,7 @@ Categories are introduced to allow you to search for vectors based on categories
 }
 ```
 
-- findex_fields: the field used to build a vector index. The field must be of the RAW type and must contain at least two fields. One field is the primary key (or the hash value of the primary key). The field value must be an integer. The other field contains a vector. If you need to build a vector index based on categories, you can add a category field. The field type is RAW and the field value is of the INTEGER data type. The order of the fields in the index parameter must be configured in the same way as that in the fields parameter. If the category field exists, the order must be the primary key field, the category field, and the vector field. You can use the built-in DupFieldProcessor to copy RAW fields from the source fields to the destination fields. You do not need to add RAW fields to the data. For more information, see [Configure vector data processing](https://github.com/alibaba/havenask/tree/main/hape/example/cases/vector/vector_conf/cluster_templates/havenask/direct_table/data_tables/default_table.json).
+- findex_fields: the field used to build a vector index. The field must be of the RAW type and must contain at least two fields. One field is the primary key (or the hash value of the primary key). The field value must be an integer. The other field contains a vector. If you need to build a vector index based on categories, you can add a category field. The field type is RAW and the field value is of the INTEGER data type. The order of the fields in the index parameter must be configured in the same way as that in the fields parameter. If the category field exists, the order must be the primary key field, the category field, and the vector field. You can use the built-in DupFieldProcessor to copy RAW fields from the source fields to the destination fields. You do not need to add RAW fields to the data. For more information, see [Configure vector data processing](https://github.com/alibaba/havenask/blob/main/aios/tools/hape/hape_conf/vector/cluster_templates/direct_table/data_tables/default_table.json).
 - name: the name of the vector index.
 - index_type: the type of the index. It must be an ANN.
 - indexer: the plug-in that you want to use to build the vector index. Set the value to aitheta2_indexer.
@@ -170,7 +170,7 @@ Qc(quantization clustering) is an inverted clustering index. In each cluster, a 
 | **Parameter** | **Restriction** | **Default value** | **Description** |
 | --- | --- | --- | --- |
 | proxima.qc.builder.train_sample_count | uint32 | 0 | The volume of training data. If you set the value of this parameter to 0, all data of a document is specified as training data. |
-| proxima.qc.builder.thread_count | uint32 | 0 | The number of threads that can be used. If you set the value of this parameter to 0, the number of threads that can be used is equal to the number of CPU cores of OpenSearch Vector Search Edition. |
+| proxima.qc.builder.thread_count | uint32 | 0 | The number of threads that can be used. If you set the value of this parameter to 0, the number of threads that can be used is equal to the number of CPU cores of the machine. |
 | proxima.qc.builder.centroid_count | string | Optional | The number of centroids that you want to use for clusters. Hierarchical clusters are supported. Separate levels of hierarchical clusters with asterisks (*).  |
 Sample value for hierarchical clusters that include one level: 1000.
 Sample value for hierarchical clusters that include two levels: 100*100.
@@ -200,7 +200,7 @@ HNSW is short for Hierarchical Navigable Small World, which is a vector index ba
 | --- | --- | --- | --- |
 | proxima.hnsw.builder.max_neighbor_count | uint32 | 100 | The maximum number of neighbors for a node in a graph. A larger value indicates a better connectivity of the graph. Correspondingly, the graph building cost and index size also increase.  |
 | proxima.hnsw.builder.efconstruction | uint32 | 500 | The size of the neighboring area that can be scanned when a graph is being built. A larger value indicates a higher quality of the offline graph building but a lower index building speed. We recommend that you set the value to 400 for the first time. |
-| proxima.hnsw.builder.thread_count | uint32 | 0 | The number of threads that can be used. If you set this parameter to 0, the number of threads that can be used is equal to the number of CPU cores of an OpenSearch Vector Search Edition instance. |
+| proxima.hnsw.builder.thread_count | uint32 | 0 | The number of threads that can be used. If you set this parameter to 0, the number of threads that can be used is equal to the number of CPU cores of the machine. |
 
 #### HNSW index search parameters
 | **Parameter** | **Restriction** | **Default value** | **Description** |

@@ -49,6 +49,6 @@ WHERE
 ## Usage notes
 If a WHERE clause contains the conditions of child table fields and the child table record that corresponds to a parent table record is empty in the query result, the parent table record is not returned by default.
 
-If a WHERE clause does not contain the conditions of child table fields, a left join operation is performed on parent table records and child table records in the query result by default. You can use a hint to change the join method. For more information, see [Hint](./Hint).
+If a WHERE clause does not contain the conditions of child table fields, a left join operation is performed on parent table records and child table records in the query result by default. You can use a hint to change the join method. For more information, see [Hint](../Hint.md).
 
 If you configure a parent table and a child table, you can separately query the parent table.

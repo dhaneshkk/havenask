@@ -5,81 +5,101 @@ order: 8
 
 # Hape FAQ and troubleshooting
 
-### working principle of hape
-* All operations performed by hape are based on the havenask/swift/bs admin
-* The admin provides a list of schedulable machines and cluster targets based on the hape to adjust the worker. hape does not directly control the worker
+## Troubleshooting hape command errors
+### 1. Hape commands that help with debugging
+* `hape validate` runs basic checks.
+* Add `-v` to any hape command to see exactly what hape does, so you can tell which step fails.
+* Example: if the `-v` output shows that creating a container failed, copy the container-creation command from the log and run it yourself to find the problem.
+
+### 2. Process startup errors
+* If `hape start` has trouble starting processes, usually either creating the admin container failed or the admin process failed to start.
+* If the error is about the admin failing to create a container, use `-v` to find which command failed.
+* If the error says the admin is not ready, the admin process failed to start (the container is fine). Use `hape gs` to find which machine the admin runs on and check the most recent ERROR lines in its logs; see [Engine logs](#engine-logs) below.
 
 
-### havenask cluster process information
-* You can run the hapes command to view the IP address and container name of the process.
-* By default, the havenask cluster creates a working directory for all processes under /home/\<user\>. You can use ls ~ | grep havenask | grep \<serviceName\> on a machine. serviceName indicates the service name specified in global.conf in the cluster configuration.
-* Logging:
-   * All processes have basic logs:
-      * Startup log :\< workdir\>/stdout.log and \<workdir\>/stdin.log
-   * Main logs of the havenask admin:
-      * Cluster process scheduling log \<workdir\>/hippo.log
-      * Cluster target log \<workdir\>/suez.log
-   * Main logs of the havenask worker:
-      * SQL engine work log \<workdir\>/ha_sql/logs/sql.log
-   * Main logs of swift admin:
-      * Cluster process scheduling log \<workdir\>/logs/hippo.log
-      * Cluster target log \<workdir\>/logs/swift/swift.log
-   * Main logs of the swift broker:
-      * broker work log \<workdir\>/logs/swift/swift.log
-* Log on to the container:
-   ```
-   find <workdir> -name sshme
-   ```
-   ```
-   bash <path-to>/sshme
-   ```
-
-* Manual process restart:
-   * Enter the container first. ps -aux finds and kills the process
-   * Then execute the process startup script
-   ```
-   find <workdir> -name process_starter.sh
-   ```
-
-   ```
-   bash <path-to>/process_starter.sh &
-   ```
+### 3. Table operation errors
+* If a hape table command fails, the table configuration may be wrong. Use `hape gs havenask` to find which machines QRS and the searchers run on and check the most recent ERROR lines in their logs; see [Engine logs](#engine-logs) below.
 
 
-### General troubleshooting methods
+## Engine logs
+* Errors from the engine admin and workers are diagnosed from the engine logs:
+    1. Use `hape gs` to find the machine a process runs on.
+    2. By default, the havenask cluster creates every process's working directory under `/home/<user>`. On a machine, run `ls ~ | grep havenask | grep <serviceName>`, where `serviceName` is the service name set in `global.conf` of the cluster configuration. The appmaster is the admin.
+    3. Logs:
+          * Basic logs for every process:
+              * Startup logs: `<workdir>/stdout.log` and `<workdir>/stdin.log`
+          * Main havenask admin logs:
+              * Cluster process scheduling: `<workdir>/hippo.log`
+              * Cluster targets: `<workdir>/suez.log`
+          * Main havenask worker log:
+              * SQL engine: `<workdir>/ha_sql/logs/sql.log`
+          * Main swift admin logs:
+              * Cluster process scheduling: `<workdir>/logs/hippo.log`
+              * Cluster targets: `<workdir>/logs/swift/swift.log`
+          * Main swift broker log:
+              * Broker: `<workdir>/logs/swift/swift.log`
 
-#### Hape Command Prompt ERROR Information
-* Troubleshoot by using the hape debug log
-   * The hape command has the-v parameter. You can open the debug-level log to see the specific commands that hape executes.
+## Working with engine containers
+* Log in to a container:
 
-* Troubleshoot by using the hape subcommand
-   * The hape validate subcommand performs basic verification on the cluster. You can use this command to identify some simple issues.
-   * The hapes gs subcommand can reveal the status of clusters and tables.
+```
+find <workdir> -name sshme
+```
 
+```
+bash <path-to>/sshme
+```
 
-#### The behavior of the havenask cluster is not as expected.
-* The hapes gs subcommand checks whether the admin and worker containers are started.
-* If the worker fails to start, you can check the hippo.log log of the admin to check whether the docker-related commands are successfully executed.
-* If the worker has been successfully started, you can run the hapes gs command to find the cluster worker and check whether the worker log contains obvious ERROR information.
-* The havenask worker can also check whether zone_config is as expected.
+* Restart a process manually:
+  * Enter the container, then find and kill the process with `ps -aux`.
+  * Run the process startup script:
+```
+find <workdir> -name process_starter.sh
+```
 
-
-### FAQ
-* hape validate/hape debug log /havenask admin log shows that containers and processes are abnormal
-   * Generally, the corresponding container and process commands will be typed, which can be executed manually to see the reason.
-
-* The container creation is not successful, and the docker ps --all shows that the container exits.
-   * Execute the sudo chmod 666 /var/run/docker.sock on the corresponding machine
+```
+bash <path-to>/process_starter.sh & 
+```
 
 
 
-* Creating a swift topic timed out
-   * This is generally caused by incorrect settings of hadoopHome and javaHome in multi-machine mode.
-   * Run the hape gs swift command to check whether the broker is started successfully
-   * Check the admin and broker logs for exceptions
+## Other common questions
 
-* The qrs does not reach the target number of rows /hape gs havenask command shows some process exceptions.
-   * You can check whether the corresponding log is occupied by the port.
-   * You can restart a node using hape restart container commands
-* The vector index does not take effect. The query results in empty data after insertion.
-   * Refer to the template /ha3_install/example/cases/vector/vector_conf of the vector index example, where data_tables is different from the normal configuration
+### How hape works
+* Everything hape does goes through the havenask, swift and bs admins.
+* The admins adjust the workers based on the schedulable machine list and cluster targets that hape gives them. hape does not control workers directly.
+
+
+### Processes fail to start
+* Container creation fails and `-v` shows permission problems:
+  * Do not use the root account, and make sure the current account has full permissions under `/home/<user>`.
+* Container creation fails and `docker ps --all` shows the container exited:
+    * Run `sudo chmod 666 /var/run/docker.sock` on that machine.
+
+* Creating a swift topic times out:
+    * Usually caused by wrong `hadoopHome` and `javaHome` settings in multi-machine mode.
+    * Use `hape gs swift` to check whether the brokers started.
+    * Check the admin and broker logs for errors.
+
+* QRS does not reach its target replica count, or `hape gs havenask` shows some processes unhealthy:
+    * Check the logs to see whether a port is already in use.
+    * Restart the node with `hape restart container`.
+
+### Vector indexes
+* A vector index has no effect and queries return nothing after inserting data:
+    * Use the vector example's templates in `/ha3_install/example/cases/vector/vector_conf` as a reference; its `data_tables` differ from the normal configuration.
+
+### HDFS does not work in multi-machine mode
+* In multi-machine mode, every machine must be able to reach the configured address through your Hadoop path.
+* To verify the configuration:
+  * Enter a container and check that the following command succeeds. `JAVA_HOME` and `HADOOP_HOME` are your configured Java and Hadoop paths, and `DATA_STORE_ROOT` is your havenask data directory for multi-machine mode.
+
+```
+JAVA_HOME=<JAVA_HOME> HADOOP_HOME=<HADOOP_HOME> /ha3_install/usr/local/bin/fs_util ls <DATA_STORE_ROOT>
+```
+
+* If it reports a permission error, grant 777 permissions on the directory with the HDFS tools.
+
+
+### Find out where a process runs
+* Run `hape gs havenask` to see which machine each process runs on.

@@ -23,19 +23,19 @@ Havenask PE tools, abbreviated as hape, is a simple distributed O&M tool for hav
    * MSMQ components of havenask
 * bs (buildservice) cluster
    * havenask full-scale offline cluster construction
-* Write-through tables
-   * A direct write table is a table that does not have a full data source and directly creates and writes data to it.
-   * For a write-through table, data is written through the qrs node, and the data is sorted by the searcher node.
-   * Write-through tables are suitable for scenarios where the data structure is simple and the index construction overhead is low.
-* Full scale
-   * A full table is a table that has a full data source and needs to bypass the full data to build a full index and cut it online to provide services.
-   * For a full table, the BS cluster starts an index building process to start the processor, builder, and merger processes respectively. Real-time data needs to be pushed to the corresponding topic (generally the same as the table name) of Swift, and it can take effect after being processed by the processor.
+* Direct-write tables
+   * A direct-write table has no full data source: you create it and write data to it directly.
+   * Data is written through the QRS nodes, and the searcher nodes organize the data on their own.
+   * Direct-write tables suit simple data structures where index building is cheap; they are simple to use.
+* Full tables
+   * A full table has a full data source. The full data is built into a full index offline, which is then switched online before the table can serve queries.
+   * For a full table, the BS cluster starts an index building process to start the processor, builder, and merger processes respectively. Real-time data must be pushed to the table's swift topic (usually named after the table) and takes effect after the processor has handled it.
    * Full tables are suitable for scenarios where full data sources are available or data is complex, the index construction overhead is high, such as vector retrieval scenarios, or offline processing resources need to be flexibly adjusted when a large amount of data is updated.
 ### Hape Fundamentals
 
 #### Process scheduling
 * The user starts the admin process by using HAPE.
-* The admin process automatically pulls up a series of worker processes based on the user's cluster and table targets, monitors and ensures that the worker processes continue to run.
+* The admin process automatically starts a set of worker processes based on the user's cluster and table targets, monitors and ensures that the worker processes continue to run.
 * hape allows you to manage multiple clusters and isolate different clusters by using the zk path and container identifier determined by the service name in the configuration.
 
 #### Table management
@@ -45,7 +45,7 @@ Havenask PE tools, abbreviated as hape, is a simple distributed O&M tool for hav
 
 #### Index construction
 * havenask sql tables are divided into direct-write tables (DIRECT tables) and full-scale tables (OFFLINE tables)
-* In the direct write table, the user directly writes data from the havenask query node through the sql statement.
+* In the direct-write table, the user directly writes data from the havenask query node through the sql statement.
 * In the full table, the user builds a full index by using the buildservice and builds a real-time index by using the swift subscription.
 
 
